@@ -1,5 +1,6 @@
 // Dice Combinations (CSES)
 
+#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
 
@@ -23,6 +24,9 @@ void solve(int N) {
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int N;
     cin >> N;
 
