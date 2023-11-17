@@ -8,31 +8,31 @@
 #include <iterator>
 
 using namespace std;
-using ll = long long;
 
 // Time: O(NlogN)
 // Space: O(N)
 
-void solve(vector<ll>& W, int N, ll MAX_W) {
-    ll count = 0;
-    multiset<ll> oSet(W.begin(), W.end());
+void solve(vector<int>& W, int N, int MAX_W) {
+    int count = 0;
+    multiset<int> oms(W.begin(), W.end());
 
-    while (!oSet.empty()) {
-        set<ll>::iterator itr1 = oSet.begin();
-        oSet.erase(itr1);
+    while (oms.size() > 1) {
+        multiset<int>::iterator itr1 = oms.begin();
+        oms.erase(itr1);
+
+        int diff = MAX_W - *itr1;
+        multiset<int>::iterator itr2 = oms.upper_bound(diff);
+        
+        // no need to check for size, because while loop is making sure we have atleast 2 elements in the set
+        // check if element found is not the only element in the set, OR there are no other elements available in the set
+        if (itr2 == oms.end() || itr2 != oms.begin())                  
+            oms.erase(prev(itr2));
+
         count++;
-
-        if (oSet.size() == 0)
-            continue;
-
-        ll diff = MAX_W - *itr1;
-        set<ll>::iterator itr2 = oSet.lower_bound(diff);
-        if (itr2 == oSet.end())
-            itr2 = prev(itr2);
-
-        if (*itr2 <= diff)
-            oSet.erase(itr2);
     }
+
+    if (oms.size() != 0)
+        count++;
 
     cout << count;
 }
@@ -41,10 +41,10 @@ int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int N; ll MAX_W;
+    int N, MAX_W;
     cin >> N >> MAX_W;
 
-    vector<ll> W(N);
+    vector<int> W(N);
     for (int i = 0; i < N; i++)
         cin >> W[i];
 
