@@ -22,9 +22,9 @@ void solve(vector<int>& W, int N, int MAX_W) {
 
         int diff = MAX_W - *itr1;
         multiset<int>::iterator itr2 = oms.upper_bound(diff);
-        
+
         // no need to check for size, because while loop is making sure we have atleast 2 elements in the set
-        // check if element found is not the only element in the set, OR there are no other elements available in the set
+        // check if element found is not the only element in the set, in other words there are no other elements available in the set
         if (itr2 == oms.end() || itr2 != oms.begin())                  
             oms.erase(prev(itr2));
 

@@ -12,6 +12,12 @@ using namespace std;
 // Space: O(N)
 
 /**
+ * Greedy approach, 
+ * Allocate smallest desired apartment to each customer so that customers after that which will have bigger asks
+ * can be allocated rest of the bigger ones.
+ * 
+ * For above approach, asks have be sorted in non-decreasing order.
+ * 
  * Sorted desired array and available apartments (indirectly by multiset), 
  * so that users with smallest asks get the smallest apartments avaialble within K variation
  * 
