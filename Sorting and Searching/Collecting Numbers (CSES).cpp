@@ -1,26 +1,24 @@
-// Towers (CSES)
+// Collecting Numbers (CSES)
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <set>
+#include <climits>
 
 using namespace std;
 
-// Time: O(NlogN)
-// Space: O(N)
+// Time: O(N)
+// Space: O(1)
+
+// numbers range [1, N]
+// can sort in O(N), O(1)
+
+// 4 2 1 5 3
+// s d d u d
+// 
 
 void solve(vector<int>& A, int N) {
-    multiset<int> uSet;
-    for (int i = 0; i < N; i++) {
-        auto itr = uSet.upper_bound(A[i]);
-        if (itr != uSet.end())
-            uSet.erase(itr);
 
-        uSet.insert(A[i]);
-    }
-
-    cout << uSet.size();
 }
 
 int main() {

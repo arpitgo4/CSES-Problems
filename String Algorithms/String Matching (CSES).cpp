@@ -1,6 +1,5 @@
 // String Matching (CSES)
 
-#include <bits/stdc++.h>
 #include <iostream>
 
 using namespace std;

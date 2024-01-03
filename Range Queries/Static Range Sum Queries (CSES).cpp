@@ -7,7 +7,6 @@
 // Improvements idea,
 // 1. Use Sparse Segment Tree, i.e. avoid building segment tree as whole, only build paths when queried. This approach significantly saves time by avoiding build tree routine and memory will be allocated only based on the query paths which are required for processing.
 
-#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
 #include <utility>

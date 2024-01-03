@@ -1,6 +1,5 @@
 // Sum of Two Values (CSES)
 
-#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
 #include <utility>

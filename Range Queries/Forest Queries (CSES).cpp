@@ -1,6 +1,5 @@
 // Forest Queries (CSES)
 
-#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
 

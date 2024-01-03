@@ -1,6 +1,5 @@
 // Static Range Minimum Queries (CSES)
-
-#include <bits/stdc++.h> 
+ 
 #include <iostream>
 #include <vector>
 #include <climits>
