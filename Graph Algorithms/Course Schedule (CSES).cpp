@@ -1,6 +1,5 @@
 // Course Schedule (CSES)
 
-#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
 

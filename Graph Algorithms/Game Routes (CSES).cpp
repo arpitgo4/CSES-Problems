@@ -1,6 +1,5 @@
 // Game Routes (CSES)
 
-#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
 
