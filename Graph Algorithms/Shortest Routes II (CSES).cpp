@@ -2,23 +2,44 @@
 
 #include <iostream>
 #include <vector>
-#include <utility>
+#include <tuple>
+#include <cmath>
+#include <climits>
 
 using namespace std;
-using ll = long long int;
 
-// Floyd-Warshall All Pairs Shortest Path
 // Time: O(V^3)
-// Space: O(V^2)
+// Space: O(1)
 
-void solve(vector<vector<ll>>& G, int V) {
-    for (int u = 1; u <= V; u++)
-        for (int v = 1; v <= V; v++)
-            for (int k = 1; k <= V; k++) {
-                if (G[u][k] != LLONG_MAX && G[k][v] != LLONG_MAX) {
-                    G[v][u] = G[u][v] = min({ G[v][u], G[u][v], G[u][k] + G[k][v] });
-                }
+#define INF LLONG_MAX
+
+typedef long long ll;
+typedef tuple<int,int,ll> edge;
+
+vector<vector<ll>> G;
+
+void floyd_warshall_apsp(int V) {
+    for (int u = 1; u <= V; u++)                // distance to self is zero
+        G[u][u] = 0;
+
+    for (int k = 1; k <= V; k++)
+        for (int u = 1; u <= V; u++)
+            for (int v = 1; v <= V; v++) {
+                if (G[u][k] != INF && G[k][v] != INF)
+                    G[v][u] = G[u][v] = min(G[u][v], G[u][k] + G[k][v]);
             }
+}
+
+void solve(vector<edge>& edges, int V, int E) {
+    G.assign(V+1, vector<ll>(V+1, INF));
+
+    int u, v; ll w;
+    for (edge& e : edges) {
+        tie(u, v, w) = e;
+        G[v][u] = G[u][v] = min({ G[v][u], G[u][v], w });      // if there are multiple edges between a pair of vertex
+    }
+
+    floyd_warshall_apsp(V);
 }
 
 int main() {
@@ -28,21 +49,18 @@ int main() {
     int V, E, Q;
     cin >> V >> E >> Q;
 
-    vector<vector<ll>> G(V+1, vector<ll>(V+1, LLONG_MAX));
     int u, v; ll w;
+    vector<edge> edges(E);
     for (int i = 0; i < E; i++) {
         cin >> u >> v >> w;
-        G[u][v] = w;
-        G[v][u] = w;
+        edges[i] = { u, v, w };
     }
 
-    solve(G, V);
+    solve(edges, V, E);
 
     for (int i = 0; i < Q; i++) {
         cin >> u >> v;
-        if (G[u][v] == LLONG_MAX)
-            cout << -1 << endl;
-        else cout << G[u][v] << endl;
+        cout << (G[u][v] == INF ? -1 : G[u][v]) << endl; 
     }
 
     return 0;
