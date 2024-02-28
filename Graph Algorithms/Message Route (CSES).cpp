@@ -6,7 +6,7 @@
 
 using namespace std;
 
-// BFS traversal for non-weighted graphs produces minimum distance from source to destination
+// BFS traversal for un-weighted graphs produces minimum distance from source to destination
 // Time: O(V + E)
 // Space: O(V + E)
 

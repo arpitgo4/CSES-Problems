@@ -15,7 +15,7 @@ using ll = long long;
 vector<vector<pair<int,ll>>> G;
 vector<int> counter;
 
-void dijkstra(int src, int K, int V) {
+void dijkstra(int src, int K, int dest) {
     auto comp = [&](auto& p1, auto& p2) {
         return p1.first > p2.first;
     };
@@ -23,7 +23,7 @@ void dijkstra(int src, int K, int V) {
 
     pq.push({ 0, src });
 
-    while (!pq.empty() && counter[V] < K) {
+    while (!pq.empty() && counter[dest] < K) {
         auto p = pq.top();
         pq.pop();
 
@@ -31,7 +31,7 @@ void dijkstra(int src, int K, int V) {
         ll d = p.first;
 
         counter[u]++;
-        if (u == V)
+        if (u == dest)
             cout << d << " ";
 
         if (counter[u] <= K) {
