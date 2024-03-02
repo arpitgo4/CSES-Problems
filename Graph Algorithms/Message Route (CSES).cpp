@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <algorithm>
 
 using namespace std;
 
@@ -10,57 +11,60 @@ using namespace std;
 // Time: O(V + E)
 // Space: O(V + E)
 
+typedef pair<int,int> edge;
 
-vector<int> VIS;
-vector<int> P;
-vector<int> path;
+vector<vector<int>> G;
+vector<int> vis, path;
+vector<int> P;                                      // shortest-path tree
 
-void prepare_path(int u) {
-    while (u != -1) {
-        path.push_back(u);
-        u = P[u];
-    }
-}
-
-bool bfs(vector<vector<int>>& G, int src, int dest) {
+void bfs(int src, int dest) {
     queue<int> q;
     q.push(src);
+    vis[src] = 1;                                       // avoids any back-edge to source vertex from adding it back in queue and making a loop in shortest-path tree
 
     while (!q.empty()) {
         int u = q.front();
         q.pop();
 
-        VIS[u] = 1;
-
-        if (u == dest) {
-            prepare_path(u);
-            return true;
-        }
-
-        for (int v : G[u])
-            if (VIS[v] == 0) {
-                q.push(v);
+        for (int v : G[u]) {
+            if (vis[v] == 0) {
+                vis[v] = 1;                             // avoids duplicate entries for same vertex into queue
                 P[v] = u;
+                q.push(v);
             }
+        }
     }
-
-    return false;
 }
 
-void solve(vector<vector<int>>& G, int V, int E) {
-    VIS.assign(V+1, 0);
+void solve(vector<edge>& edges, int V, int E) {
+    G.assign(V+1, vector<int>());
+    vis.assign(V+1, 0);
     P.assign(V+1, -1);
+    for (edge& e : edges) {
+        int u = e.first, v = e.second;
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
 
-    bool path_found = bfs(G, 1, V);
-    if (!path_found) {
+    bfs(1, V);
+
+    if (vis[V] == 0) {
         cout << "IMPOSSIBLE";
         return;
     }
 
-    int N = path.size();
-    cout << N << endl;
-    for (int i = N-1; i >= 0; i--)
-        cout << path[i] << " ";
+    int curr = V;
+    while (curr != -1) {
+        path.push_back(curr);
+        curr = P[curr];
+    }
+
+    reverse(path.begin(), path.end());
+
+    cout << path.size() << endl;
+    for (int u : path)
+        cout << u << " ";
+    cout << endl;
 }
 
 int main() {
@@ -70,15 +74,14 @@ int main() {
     int V, E;
     cin >> V >> E;
 
-    vector<vector<int>> G(V+1, vector<int>());
+    vector<edge> edges(E);
     int u, v;
     for (int i = 0; i < E; i++) {
         cin >> u >> v;
-        G[u].push_back(v);
-        G[v].push_back(u);
+        edges[i] = { u, v };
     }
 
-    solve(G, V, E);
+    solve(edges, V, E);
 
     return 0;
 }
