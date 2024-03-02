@@ -17,6 +17,11 @@ vector<vector<int>> G;
 vector<int> vis, path;
 vector<int> P;                                      // shortest-path tree
 
+/**
+ * vis[u] = 0 (undiscovered)
+ * vis[u] = 1 (discovered/in-processing)
+ * vis[u] = 2 (visited/processed)
+*/
 void bfs(int src, int dest) {
     queue<int> q;
     q.push(src);
@@ -25,6 +30,10 @@ void bfs(int src, int dest) {
     while (!q.empty()) {
         int u = q.front();
         q.pop();
+
+        if (vis[u] == 2)
+            continue;
+        vis[u] = 2;
 
         for (int v : G[u]) {
             if (vis[v] == 0) {
