@@ -22,7 +22,7 @@ vector<int> P;                                      // shortest-path tree
  * vis[u] = 1 (discovered/in-processing)
  * vis[u] = 2 (visited/processed)
 */
-void bfs(int src, int dest) {
+void bfs(int src) {
     queue<int> q;
     q.push(src);
     vis[src] = 1;                                       // avoids any back-edge to source vertex from adding it back in queue and making a loop in shortest-path tree
@@ -55,7 +55,7 @@ void solve(vector<edge>& edges, int V, int E) {
         G[v].push_back(u);
     }
 
-    bfs(1, V);
+    bfs(1);
 
     if (vis[V] == 0) {
         cout << "IMPOSSIBLE";
