@@ -7,58 +7,54 @@
  
 using namespace std;
  
-// Strongly-Connected Components
 // Time: O(V + E)
 // Space: O(V + E)
  
+typedef pair<int,int> edge;
+
 vector<vector<int>> G;
-vector<int> low_link, vis, s_time, scc;
+vector<int> vis, low_link, s_time;
+vector<int> scc_roots, P;          // P, path-compressed parent-pointer tree
 vector<bool> on_stack;
 stack<int> st;
 
-int scc_count = 0;
 int timer = 0;
 
 void dfs(int u) {
-    vis[u] = 1;
-    low_link[u] = s_time[u] = ++timer;       // timer, as monotonically-increasing id
+    s_time[u] = low_link[u] = timer++;
     st.push(u);
     on_stack[u] = true;
+    vis[u] = 1;
 
     for (int v : G[u]) {
-        if (vis[v] == 0) {                  // tree-edge
+        if (vis[v] == 0) {
             dfs(v);
             low_link[u] = min(low_link[u], low_link[v]);
-        } else if (on_stack[v]) {           // back-edge, if v is on_stack
+        } else if (on_stack[v])
             low_link[u] = min(low_link[u], s_time[v]);
-        } else {
-            // ignore cross-edge & forward-edge
-        }
     }
 
-    if (low_link[u] == s_time[u]) {
-        scc_count++;
+    if (s_time[u] == low_link[u]) {
+        scc_roots.push_back(u);
 
         int v;
         do {
             v = st.top();
             st.pop();
             on_stack[v] = false;
-            scc[v] = u;
+            P[v] = u;
         } while (v != u);
     }
-
-    vis[u] = 2;
 }
 
-void solve(int V, int E, vector<pair<int,int>>& edges) {
+void solve(vector<edge>& edges, int V, int E) {
     G.assign(V+1, vector<int>());
-    low_link.assign(V+1, 0);
     vis.assign(V+1, 0);
     s_time.assign(V+1, -1);
+    low_link.assign(V+1, -1);
+    P.assign(V+1, -1);
     on_stack.assign(V+1, false);
-    scc.assign(V+1, -1);
-    for (pair<int,int>& e : edges) {
+    for (edge& e : edges) {
         int u = e.first, v = e.second;
         G[u].push_back(v);
     }
@@ -67,16 +63,15 @@ void solve(int V, int E, vector<pair<int,int>>& edges) {
         if (vis[u] == 0)
             dfs(u);
 
-    int label_idx = 0;
-    unordered_map<int,int> label_map;
-    for (int repr : scc) {
-        if (label_map.find(repr) == label_map.end())
-            label_map.insert({ repr, label_idx++ });
-    }
+    int idx = 1;
+    unordered_map<int,int> labels;
+    for (int r : scc_roots)
+        labels[r] = idx++;
 
-    cout << scc_count << endl;
+    cout << scc_roots.size() << endl;
     for (int u = 1; u <= V; u++)
-        cout << label_map[scc[u]] << " ";
+        cout << labels[P[u]] << " ";
+    cout << endl;
 }
  
 int main() {
@@ -87,13 +82,13 @@ int main() {
     cin >> V >> E;
 
     int u, v;
-    vector<pair<int,int>> edges(E);
+    vector<edge> edges(E);
     for (int i = 0; i < E; i++) {
         cin >> u >> v;
         edges[i] = { u, v };
     }
 
-    solve(V, E, edges);
+    solve(edges, V, E);
     
     return 0;
 }
