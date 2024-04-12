@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -11,37 +12,35 @@ using namespace std;
 typedef pair<int,int> edge;
 
 vector<vector<int>> T;
+vector<int> depth;
 
-int diameter = 0;
-
-int dfs(int u, int p) {
-    int max_1 = 0, max_2 = 0;
+void dfs(int u, int p, int dep) {
+    depth[u] = dep;
     for (int v : T[u]) {
         if (v != p) {
-            int dist = 1 + dfs(v, u);
-            if (dist > max_1) {
-                max_2 = max_1;
-                max_1 = dist;
-            } else if (dist > max_2)
-                max_2 = dist;
+            dfs(v, u, dep+1);
         }
     }
-
-    diameter = max({ diameter, max_1, max_1 + max_2 });
-
-    return max_1;
 }
 
-void solve(vector<edge>& E, int V) {
-    T.assign(V+1, vector<int>());
-    for (edge& p : E) {
-        int u = p.first, v = p.second;
+void solve(vector<edge>& edges, int N) {
+    T.assign(N+1, vector<int>());
+    for (edge& e : edges) {
+        int u = e.first, v = e.second;
         T[u].push_back(v);
         T[v].push_back(u);
     }
 
-    dfs(1, -1);
+    depth.assign(N+1, 0);
+    dfs(1, -1, 0);
 
+    int max_dep = *max_element(depth.begin(), depth.end());
+    int leaf = find(depth.begin(), depth.end(), max_dep) - depth.begin();
+
+    depth.assign(N+1, 0);
+    dfs(leaf, -1, 0);
+
+    int diameter = *max_element(depth.begin(), depth.end());
     cout << diameter << endl;
 }
 
