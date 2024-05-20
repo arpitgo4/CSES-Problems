@@ -1,45 +1,40 @@
 // String Matching (CSES)
 
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
 // Time: O(N + M)
 // Space: O(N + M)
 
+vector<int> pi;
 
-vector<int> Z;
-
-void fill_Z_array(string& S) {
-    int N = S.length();
-    Z.assign(N, 0);
-
-    int l = 0, r = 0;
+void prefix_function(string& T) {
+    int N = T.length();
+    pi.assign(N, 0);
     for (int i = 1; i < N; i++) {
-        if (i < r)
-            Z[i] = min(r-i, Z[i-l]);
-        while (i + Z[i] < N && S[Z[i]] == S[i + Z[i]])
-            Z[i]++;
-        if (i + Z[i] > r) {
-            l = i;
-            r = i + Z[i];
-        }
+        int j = pi[i-1];
+        while (j > 0 && T[i] != T[j])
+            j = pi[j-1];
+        if (T[i] == T[j])
+            j++;
+        pi[i] = j;
     }
 }
 
 void solve(string& T, string& P) {
     int M = P.length();
 
-    string z_string = P + '$' + T;
-    fill_Z_array(z_string);
+    string str = P + '$' + T;
+    prefix_function(str);
+    
+    int count = 0;
+    for (int v : pi)
+        if (v == M)
+            count++;
 
-    int X = z_string.length();
-    int counter = 0;
-    for (int i = 0; i < X; i++)
-        if (Z[i] == M)
-            counter++;
-
-    cout << counter;
+    cout << count << endl;
 }
 
 int main() {
