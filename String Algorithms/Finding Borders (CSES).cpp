@@ -11,8 +11,6 @@ using namespace std;
  * subsequent borders can be found by looking for border within the previous border
  * i.e next border will the border of the previous border
  * pi[pi[i-1]].... recursive pi of pi of pi....
- * 
- * TODO: write recursive implementation for the above
 */
 
 // Time: O(N)
