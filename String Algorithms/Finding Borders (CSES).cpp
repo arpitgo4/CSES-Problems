@@ -34,10 +34,7 @@ void pi_function(string& S) {
     }
 }
 
-void solve(string& S) {
-    string str = S + '$';
-    pi_function(str);
-
+void print_borders_iterative(string& S) {
     vector<int> borders;
     int N = S.length(), j = pi[N-1];
     while (j > 0) {
@@ -49,6 +46,24 @@ void solve(string& S) {
 
     for (int l : borders)
         cout << l << " ";
+}
+
+void print_borders(int pi_val) {
+    if (pi_val > 0) {
+        print_borders(pi[pi_val-1]);
+        cout << pi_val << " ";
+    }
+}
+
+void solve(string& S) {
+    string str = S + '$';
+    pi_function(str);
+
+    int N = S.length();
+
+    // print_borders_iterative(S);
+    print_borders(pi[N-1]);
+
     cout << endl;
 }
  
