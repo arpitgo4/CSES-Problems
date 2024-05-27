@@ -2,90 +2,64 @@
 
 #include <iostream>
 #include <vector>
-
+#include <algorithm>
+ 
 using namespace std;
-using ll = long long;
+ 
+/**
+ * After finding border for whole string S with prefix function (pi)
+ * subsequent borders can be found by looking for border within the previous border
+ * i.e next border will the border of the previous border
+ * pi[pi[i-1]].... recursive pi of pi of pi....
+ * 
+ * TODO: write recursive implementation for the above
+*/
 
 // Time: O(N)
 // Space: O(N)
+ 
+vector<int> pi;
 
-// TODO: Add a second hash to drastically lower hash-collision probability 
+void pi_function(string& S) {
+    int N = S.length();
+    pi.assign(N, 0);
 
-const ll P = 31;
-const ll MOD = 1e9 + 9;
-vector<ll> POW;
-vector<ll> HASH;
-
-
-void init(string& S, int N) {
-    POW.assign(N, 1);
-    HASH.assign(N, 0);
-
-    HASH[0] = S[0] - 'a' + 1;
     for (int i = 1; i < N; i++) {
-        POW[i] = (POW[i-1] * P) % MOD;
-        HASH[i] = ((((S[i] - 'a' + 1) * POW[i]) + HASH[i-1]) % MOD) % MOD;
+        int j = pi[i-1];
+        while (j > 0 && S[i] != S[j])
+            j = pi[j-1];
+        if (S[i] == S[j])
+            j++;
+        pi[i] = j;
     }
-}
-
-ll compute_hash(int lo, int hi) {
-    if (lo == 0)
-        return HASH[hi];    
-
-    return (HASH[hi] - HASH[lo-1] + MOD) % MOD;
-}
-
-bool compare_substrings(int l1, int h1, int l2, int h2) {
-    ll H1 = compute_hash(l1, h1);
-    ll H2 = compute_hash(l2, h2);
-
-    ll normalized_H1 = (H1 * POW[h2-h1]) % MOD;         // equalizing hashes by equalizing difference between max powers
-
-    return normalized_H1 == H2;
 }
 
 void solve(string& S) {
-    int N = S.length();
-    init(S, N);
-
-    for (int i = 0; i < N-1; i++) {
-        if (compare_substrings(0, i, N-1-i, N-1))
-            cout << i+1 << " ";
-    }
-}
-
-// Time: O(N^2)
-// Space: O(1)
-void solve_brute(string& S) {
-    int N = S.length();
+    string str = S + '$';
+    pi_function(str);
 
     vector<int> borders;
-
-    for (int i = 0; i < N-1; i++) {
-        int j = N-1-i;
-        int k = 0;
-        while (k <= i && S[k] == S[j]) {
-            j++;
-            k++;
-        }
-
-        if (k-1 == i)
-            borders.push_back(i+1);
+    int N = S.length(), j = pi[N-1];
+    while (j > 0) {
+        borders.push_back(j);
+        j = pi[j-1];
     }
 
-    for (int b : borders)
-        cout << b << " ";
-}
+    reverse(borders.begin(), borders.end());
 
+    for (int l : borders)
+        cout << l << " ";
+    cout << endl;
+}
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-
+    
     string S;
     cin >> S;
 
-    // solve_brute(S);
     solve(S);
-
+    
     return 0;
 }
