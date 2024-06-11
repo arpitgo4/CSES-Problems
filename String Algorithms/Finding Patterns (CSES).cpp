@@ -8,6 +8,8 @@ using namespace std;
  
 /**
  * Needs BFS based construction to pass all test cases
+ * 
+ * Reduce number of nodes in Trie by compressing redundant nodes-edges
 */
 
 // Time: O(M + N)
