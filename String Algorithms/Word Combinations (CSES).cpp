@@ -13,45 +13,32 @@ using namespace std;
  
 const int MOD = 1e9 + 7;
 const int MAX_STRING_LENGTH = 5000 + 1;
+const int ALPHABET = 26;
 vector<int> cache(MAX_STRING_LENGTH, -1);
  
 class TrieNode {
 public:
-    vector<TrieNode*> children;
+    vector<TrieNode*> next;
     bool isWord;
  
     TrieNode() {
         this->isWord = false;
-        this->children.assign(26, NULL);
+        this->next.assign(ALPHABET, NULL);
     }
-};
- 
-class Trie {
-public:
-    
-    TrieNode* root;
- 
-    Trie() {
-        this->root = new TrieNode();
+}root;
+
+void insert_trie(string& S) {
+    TrieNode* node = &root;
+    for (char c : S) {
+        int idx = c - 'a';
+        if (node->next[idx] == NULL)
+            node->next[idx] = new TrieNode();
+
+        node = node->next[idx];
     }
- 
-    TrieNode* getRoot() {
-        return this->root;
-    }
- 
-    void insert(string& S) {
-        TrieNode* node = root;
-        for (char c : S) {
-            int idx = c - 'a';
-            if (node->children[idx] == NULL)
-                node->children[idx] = new TrieNode();
- 
-            node = node->children[idx];
-        }
- 
-        node->isWord = true;
-    }
-} trie;
+
+    node->isWord = true;
+}
  
 int dfs(int i, string& S, int N) {
     if (i == N)
@@ -60,10 +47,10 @@ int dfs(int i, string& S, int N) {
         return cache[i];
     
     int count = 0;
-    TrieNode* node = trie.getRoot();
+    TrieNode* node = &root;
     for (int j = i; j < N; j++) {
         int idx = S[j] - 'a';
-        node = node->children[idx];
+        node = node->next[idx];
         if (node == NULL)
             break;
  
@@ -78,7 +65,7 @@ void solve(string& S, vector<string>& A, int K) {
     int N = S.length();
     for (string& s : A) {
         string sub = s.substr(0, N); 
-        trie.insert(sub);
+        insert_trie(sub);
     }
  
     int count = dfs(0, S, N);
