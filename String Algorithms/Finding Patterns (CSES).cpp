@@ -5,22 +5,23 @@
 #include <string>
  
 using namespace std;
- 
-/**
- * Needs BFS based construction to pass all test cases
- * 
- * Reduce number of nodes in Trie by compressing redundant nodes-edges
-*/
 
 // Time: O(M + N)
 // Space: O(M)
 
+const int MAX_N = 1e6;
 const int ALPHABET = 26;
-vector<bool> found;
+
+vector<bool> match;
+vector<vector<int>> T;
+vector<bool> visited;
+
+int node_counter = 0;
 
 class TrieNode {
 public:
-    vector<int> word_idx;
+    int node_id;
+    vector<int> word_indices;
     bool is_word;
     vector<TrieNode*> next;
     char par_ch;
@@ -30,6 +31,7 @@ public:
     TrieNode* exit_link;
 
     TrieNode() {
+        this->node_id = ++node_counter;
         this->is_word = false;
         this->next.assign(ALPHABET, NULL);
         this->go.assign(ALPHABET, NULL);
@@ -37,7 +39,7 @@ public:
         this->link = NULL;
         this->exit_link = NULL;
         this->par_ch = '$';
-        this->word_idx = vector<int>();
+        this->word_indices = vector<int>();
     }
 
     TrieNode(char par_ch, TrieNode* parent) : TrieNode() {
@@ -46,6 +48,8 @@ public:
     }
 }root;
 
+vector<TrieNode*> nodes;
+
 void insert_trie(string& S, int pattern_idx) {
     TrieNode* node = &root;
     for (char c : S) {
@@ -53,10 +57,11 @@ void insert_trie(string& S, int pattern_idx) {
         if (node->next[i] == NULL)
             node->next[i] = new TrieNode(c, node);
         node = node->next[i];
+        nodes[node->node_id] = node;
     }
 
     node->is_word = true;
-    node->word_idx.push_back(pattern_idx);
+    node->word_indices.push_back(pattern_idx);
 }
 
 TrieNode* go(TrieNode* node, char ch);
@@ -69,6 +74,10 @@ TrieNode* get_link(TrieNode* node) {
             TrieNode* link = get_link(node->parent);
             node->link = go(link, node->par_ch);
         }
+
+        // add each suffix link as edge in suffix link tree
+        T[node->node_id].push_back(node->link->node_id);
+        T[node->link->node_id].push_back(node->node_id);
     }
     
     return node->link;
@@ -86,42 +95,45 @@ TrieNode* go(TrieNode* node, char ch) {
     return node->go[i];
 }
 
-TrieNode* get_exit_link(TrieNode* node) {
-    if (node == &root)
-        return &root;
-    if (node->exit_link != NULL)
-        return node->exit_link;
-    
-    TrieNode* link = get_link(node);
-    if (link->is_word)
-        return node->exit_link = link;
-    else return node->exit_link = get_exit_link(link);
-}
-
-void output_vertex(TrieNode* node) {
-    while (node != &root) {
-        if (node->is_word) {
-            for (int idx : node->word_idx)
-                found[idx] = true;
-        }
-
-        node = get_exit_link(node);
+bool dfs(int u, int p) {
+    bool found = visited[nodes[u]->node_id];
+    for (int v : T[u]) {
+        if (v != p)
+            found = dfs(v, u) || found;
     }
+
+    if (nodes[u]->is_word && found) {
+        for (int word_idx : nodes[u]->word_indices)
+            match[word_idx] = true;
+    }
+
+    return found;
 }
 
-void solve(string& T, vector<string>& patterns, int K) {
-    found.assign(K, false);
+void solve(string& text, vector<string>& patterns, int K) {
+    T.assign(MAX_N, vector<int>());
+    nodes.assign(MAX_N, NULL);
+    visited.assign(MAX_N, false);
+    match.assign(K, false);
     for (int i = 0; i < K; i++)
         insert_trie(patterns[i], i);
 
+    // build suffix links for all nodes in trie
+    for (int i = 1; i <= node_counter; i++)
+        if (nodes[i] != NULL)
+            get_link(nodes[i]);
+
     TrieNode* node = &root;
-    for (char c : T) {
+    for (char c : text) {
         node = go(node, c);
-        output_vertex(node);
+        visited[node->node_id] = true;
     }
 
-    for (bool match : found)
-        cout << (match ? "YES" : "NO") << endl;
+    nodes[root.node_id] = &root;
+    dfs(root.node_id, -1);
+
+    for (bool found : match)
+        cout << (found ? "YES" : "NO") << endl;
 }
  
 int main() {
