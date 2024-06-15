@@ -74,10 +74,6 @@ TrieNode* get_link(TrieNode* node) {
             TrieNode* link = get_link(node->parent);
             node->link = go(link, node->par_ch);
         }
-
-        // add each suffix link as edge in suffix link tree
-        T[node->node_id].push_back(node->link->node_id);
-        T[node->link->node_id].push_back(node->node_id);
     }
     
     return node->link;
@@ -118,10 +114,17 @@ void solve(string& text, vector<string>& patterns, int K) {
     for (int i = 0; i < K; i++)
         insert_trie(patterns[i], i);
 
+    nodes[root.node_id] = &root;
+
     // build suffix links for all nodes in trie
-    for (int i = 1; i <= node_counter; i++)
-        if (nodes[i] != NULL)
-            get_link(nodes[i]);
+    for (int i = 1; i <= node_counter; i++) {
+        TrieNode* node = nodes[i];
+        TrieNode* link = get_link(node);
+
+        // add each suffix link as edge in suffix link tree
+        T[node->node_id].push_back(link->node_id);
+        T[link->node_id].push_back(node->node_id);
+    }
 
     TrieNode* node = &root;
     for (char c : text) {
@@ -129,7 +132,6 @@ void solve(string& text, vector<string>& patterns, int K) {
         visited[node->node_id] = true;
     }
 
-    nodes[root.node_id] = &root;
     dfs(root.node_id, -1);
 
     for (bool found : match)
