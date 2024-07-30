@@ -2,37 +2,30 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
-// Time: O(N^2)
+// Time: O(NlogN)
 // Space: O(N)
 
-vector<int> cache;
-
-int dfs(int i, vector<int>& A, int N) {
-    if (i == N)
-        return 0;
-    if (cache[i] != -1)
-        return cache[i];
-
-    int count = 1;
-    for (int j = i+1; j < N; j++) {
-        if (A[j] > A[i])
-            count = max(count, 1 + dfs(j, A, N));
-    }
-
-    return cache[i] = count;
-}
+/**
+ * dp[l] -> it is the smallest element at which an increasing
+ *          subsequence of length `l` ends.
+ */
 
 void solve(vector<int>& A, int N) {
-    cache.assign(N, -1);
+    vector<int> dp;
+    for (int i = 0; i < N; i++) {
+        int j = lower_bound(dp.begin(), dp.end(), A[i]) - dp.begin();
+        if (j == dp.size()) {
+            dp.push_back(A[i]);
+        } else {
+            dp[j] = A[i];
+        }
+    }
 
-    int max_len = 1;
-    for (int i = 0; i < N; i++)
-        max_len = max(max_len, dfs(i, A, N));
-    
-    cout << max_len << endl;
+    cout << dp.size() << endl;
 }
 
 int main() {
