@@ -1,77 +1,54 @@
 // Two Sets (CSES)
-
+ 
 #include <iostream>
-
+#include <unordered_set>
+ 
 using namespace std;
+ 
+// Time: O(N)
+// Space: O(N)
 
-// Time: O(N^2)
-// Space: O(N^2)
-
-vector<vector<int>> cache;
-
-bool dfs(int i, int sum, int k, int N, vector<int>& acc) {
-    if (i > N)
-        return sum == k;
-    if (cache[i][sum] != -1)
-        return cache[i][sum];
-
-    acc.push_back(i);
-    bool res1 = dfs(i+1, sum+i, k, N, acc);
-    if (res1 == true)
-        return res1;
-
-    acc.pop_back();
-    bool res2 = dfs(i+1, sum, k, N, acc);
-    if (res2 == true)
-        return res2;
-}
-
-void solve(int N) {
-    cache.assign(N+1, vector<int>(N+1, -1));
-
-    // can do in O(1), with AP sum formula
-    int sum = 0;
-    for (int i = 1; i <= N; i++)
-        sum += i;
-
-    if (sum % 2 != 0) {
-        cout << "NO";
+typedef long long ll;
+ 
+void solve(ll N) {
+    ll total = (N * (N+1)) / 2;
+    if (total % 2 == 1) {
+        cout << "NO" << endl;
         return;
     }
 
-    int k = sum/2;
-    vector<int> acc;
-    bool res = dfs(1, 0, k, N, acc);
-
-    if (res == false) {
-        cout << "NO";
-    } else {
-        cout << "YES" << endl;
-        unordered_set<int> uSet;
-        cout << acc.size() << endl;
-        for (int a : acc) {
-            cout << a << " ";
-            uSet.insert(a);
+    ll target = total / 2;
+    ll sum = 0;
+    unordered_set<ll> uSet;
+    for (ll num = N; num > 0 && sum != target; num--) {
+        if (sum + num <= target) {
+            sum += num;
+            uSet.insert(num);
         }
-        cout << endl;
-
-        cout << N-acc.size() << endl;
-        for (int i = 1; i <= N; i++) {
-            if (uSet.find(i) == uSet.end())
-                cout << i << " ";
-        }
-        cout << endl;
     }
-}
 
+    cout << "YES" << endl;
+    cout << uSet.size() << endl;
+    for (ll a : uSet)
+        cout << a << " ";
+    cout << endl;
+
+    cout << (N-uSet.size()) << endl;
+    for (ll i = 1; i <= N; i++) {
+        if (uSet.find(i) == uSet.end())
+            cout << i << " ";
+    }
+    cout << endl;
+}
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-
+    
     int N;
     cin >> N;
-
+    
     solve(N);
-
+    
     return 0;
 }
