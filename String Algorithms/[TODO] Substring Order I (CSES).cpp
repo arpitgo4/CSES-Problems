@@ -9,18 +9,16 @@ using namespace std;
 // Time: O(N + )
 // Space: O(N)
  
-const int MAXLEN = 100000;
+const int MAX_LEN = 100000;
 int sz, last;
-
-vector<int> vis;
 
 struct state {
     int len, link;
     map<char, int> next;
 };
 
-state st[MAXLEN * 2];
-int vis[MAXLEN * 2];
+vector<state> st(MAX_LEN * 2);
+vector<int> vis(MAX_LEN * 2);
 
 void sa_init() {
     st[0].len = 0;
