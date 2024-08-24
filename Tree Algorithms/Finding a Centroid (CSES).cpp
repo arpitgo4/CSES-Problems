@@ -46,7 +46,7 @@ void solve(vector<edge>& edges, int N) {
     int centroid = find_centroid(1, -1, N);
     cout << centroid << endl;
 }
- 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

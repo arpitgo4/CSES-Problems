@@ -21,48 +21,18 @@ using namespace std;
  * We need MO's algorithm here!
  */
 
-// Time: O(NlogN + QlogN) ~ O((N + Q)logN)
-// Space: O(N)
+// Time: O(N + Q√N)
+// Space: O(√N)
 
-vector<int> A;
-vector<unordered_set<int>> ST;
+const int MAX_N = 2e5;
+const int BLK_CNT = (int) sqrt(MAX_N + .0) + 1;
 
-// small to large merging heuristic
-int merge(int a, int b) {
-    if (ST[a].size() < ST[b].size())
-        swap(a, b);
+vector<unordered_set<int>> B;
 
-    for (int v : ST[b])
-        ST[a].insert(v);
-
-    return a;
-}
-
-int query(int l, int h, int i, int a, int b) {
-    if (l == h || (l == a && h == b))
-        return ST[i].size();
-    
-    int count = 0;
-
-    int m = (h-l)/2 + l;
-    count += query(l, m, 2*i+1, a, min(m, b));
-    count += query(m+1, h, 2*i+2, max(m+1, a), b);
-
-    return count;
-}
-
-void build_seg_tree(int l, int h, int i) {
-    if (l == h) {
-        ST[i] = *new unordered_set<int>{ A[l] };
-        return;
-    }
-
-    int m = (h-l)/2 + l;
-    build_seg_tree(l, m, 2*i+1);
-    build_seg_tree(m+1, h, 2*i+2);
-
-    int max_idx = merge(2*i+1, 2*i+2);
-    ST[i] = ST[max_idx];
+void build_blocks(vector<int>& A, int N) {
+    B.assign(BLK_CNT, unordered_set<int>());
+    for (int i = 0; i < N; i++)
+        B[i/BLK_CNT].insert(A[i]);
 }
  
 int main() {
@@ -72,20 +42,38 @@ int main() {
     int N, Q;
     cin >> N >> Q;
     
-    A.assign(N, 0);
-    ST.resize(4*N);
+    vector<int> A(N, 0);
     for (int i = 0; i < N; i++)
         cin >> A[i];
 
-    build_seg_tree(0, N-1, 0);
+    build_blocks(A, N);
 
-    char c;
-    int a, b, k, x;
+    int a, b;
+    vector<int> q_idx(Q);
+    vector<pair<int,int>> queries(Q);
     for (int i = 0; i < Q; i++) {
+        q_idx[i] = i;
         cin >> a >> b;
-        int count = query(0, N-1, 0, a-1, b-1);
-        cout << count << endl;
+        queries[i] = { a, b };
     }
+
+    sort(q_idx.begin(), q_idx.end(), [&](const int a, const int b) {
+        if (queries[a].first == queries[b].first)
+            return queries[a].second > queries[b].second;
+
+        return queries[a].first < queries[b].first;
+    });
+
+    vector<int> res(Q);
+    for (int i = 0; i < Q; i++) {
+        int idx = q_idx[i];
+        auto& [l, h] = queries[idx];
+
+        
+    }
+
+    for (int r : res)
+        cout << r << endl;
     
     return 0;
 }

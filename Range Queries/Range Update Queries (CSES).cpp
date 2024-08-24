@@ -34,15 +34,14 @@ void push(int i) {
 }
 
 void update(int l, int h, int i, int p, int q, ll x) {
-    if (l > h || p > h || l > q)
+    if (l > h || p > q)
         return;
     if (l == p && h == q) {
         lazy[i] += x;
         return;
     }
 
-    if (l != h)                                                 // internal node
-        push(i);
+    push(i);
 
     int m = (h-l)/2 + l;
     update(l, m, 2*i+1, p, min(m, q), x);
@@ -57,8 +56,7 @@ ll query(int l, int h, int i, int k) {
     if (l == h && l == k)
         return ST[i] + lazy[i];                                 // reading only single element at a time
 
-    if (l != h)                                                 // internal node
-        push(i);
+    push(i);
 
     int m = (h-l)/2 + l;
     if (k <= m)
