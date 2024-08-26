@@ -92,7 +92,7 @@ TrieNode* go(TrieNode* node, char ch) {
 }
 
 bool dfs(int u, int p) {
-    bool found = visited[nodes[u]->node_id];
+    bool found = visited[u];
     for (int v : T[u]) {
         if (v != p)
             found = dfs(v, u) || found;
