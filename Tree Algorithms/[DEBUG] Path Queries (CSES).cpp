@@ -12,12 +12,6 @@ using namespace std;
 typedef long long ll;
 typedef pair<int,int> edge;
 
-/**
- * Test Cases with big numbers and big tree size are failing
- * 
- * Should be due to number overflow somewhere...!
-*/
-
 vector<vector<int>> T;
 vector<int> LT, sz, s_time;
 vector<ll> val, sum;
@@ -53,8 +47,13 @@ void build_seg_tree(int l, int h, int i) {
     ST[i] = ST[2*i+1] + ST[2*i+2];
 }
 
-void push(int i) {
+void push(int l, int h, int i) {
     if (marked[i]) {
+        int m = (h-l)/2 + l;
+
+        ST[2*i+1] += lazy[i] * (m-l+1);
+        ST[2*i+2] += lazy[i] * (h-m);
+
         lazy[2*i+1] += lazy[i];
         lazy[2*i+2] += lazy[i];
         marked[2*i+1] = marked[2*i+2] = true;
@@ -68,13 +67,13 @@ void update(int l, int h, int i, int p, int q, ll x) {
     if (p > q)
         return;
     if (l == p && h == q) {
+        ST[i] += x * (h-l+1);
         lazy[i] += x;
         marked[i] = true;
         return;
     }
 
-    push(i);
-
+    push(l, h, i);
     int m = (h-l)/2 + l;
     update(l, m, 2*i+1, p, min(q, m), x);
     update(m+1, h, 2*i+2, max(m+1, p), q, x);
@@ -84,10 +83,9 @@ void update(int l, int h, int i, int p, int q, ll x) {
 
 ll query(int l, int h, int i, int k) {
     if (l == h && l == k)
-        return ST[i] + lazy[i];
+        return ST[i];
 
-    push(i);
-
+    push(l, h, i);
     int m = (h-l)/2 + l;
     if (k <= m)
         return query(l, m, 2*i+1, k);
