@@ -45,7 +45,7 @@ void solve(vector<int>& A, int N, int K) {
     print_median(oSet, K);
 
     for (int i = K; i < N; i++) {
-	oSet.insert({ A[i], idx++ });                             // to simulate multiset behaviour
+	    oSet.insert({ A[i], idx++ });                             // to simulate multiset behaviour
         oSet.erase(oSet.lower_bound({ A[i-K], 0 }));
         print_median(oSet, K);
     }
