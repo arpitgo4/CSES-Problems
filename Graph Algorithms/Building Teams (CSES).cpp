@@ -7,40 +7,51 @@ using namespace std;
 
 // Time: O(V + E)
 // Space: O(V + E)
- 
-vector<vector<int>> G;
-vector<int> team;
-bool is_bipartite = true;
 
-void dfs(int u, int color) {
-    team[u] = color;
+typedef pair<int,int> edge;
+
+vector<vector<int>> G;
+vector<int> vis, color;
+
+bool is_bipartite_graph = true;
+
+void dfs(int u, int c) {
+    vis[u] = 1;
+    color[u] = c;
 
     for (int v : G[u]) {
-        if (team[v] == team[u])
-            is_bipartite = false;
-        if (team[v] == -1)
-            dfs(v, (color + 1) % 2);
+        if (vis[v] == 0) {
+            dfs(v, (c+1) % 2);
+        } else {
+            if (color[v] == c)
+                is_bipartite_graph = false;
+        }
     }
+
+    vis[u] = 2;
 }
 
-void solve(vector<pair<int,int>>& edges, int V, int E) {
+void solve(vector<edge>& edges, int V, int E) {
     G.assign(V+1, vector<int>());
-    team.assign(V+1, -1);
-    for (pair<int,int>& e : edges) {
-        int u = e.first, v = e.second;
+    vis.assign(V+1, 0);
+    color.assign(V+1, -1);
+    for (auto& [u, v] : edges) {
         G[u].push_back(v);
         G[v].push_back(u);
     }
 
-    for (int u = 1; u <= V; u++)
-        if (team[u] == -1)
+    for (int u = 1; u <= V; u++) {
+        if (vis[u] == 0) {
             dfs(u, 0);
+        }
+    }
 
-    if (!is_bipartite)
-        cout << "IMPOSSIBLE";
-    else {
+    if (!is_bipartite_graph) {
+        cout << "IMPOSSIBLE" << endl;
+    } else {
         for (int u = 1; u <= V; u++)
-            cout << (team[u]+1) << " ";
+            cout << (color[u] + 1) << " ";
+        cout << endl;
     }
 }
  
@@ -52,7 +63,7 @@ int main() {
     cin >> V >> E;
 
     int u, v;
-    vector<pair<int,int>> edges(E);
+    vector<edge> edges(E);
     for (int i = 0; i < E; i++) {
         cin >> u >> v;
         edges[i] = { u, v };    

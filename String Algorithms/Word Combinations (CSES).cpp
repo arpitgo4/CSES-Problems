@@ -5,70 +5,87 @@
  
 using namespace std;
  
-// N = S.length()
-// K = number of words in dictionary
-// M = max length of any word
-// Time: O(N^2 + 26*M) ~ O(N^2 + M)
-// Space: O(26*M) ~ O(M)
- 
+// Time: O(N^2)
+// Space: O(N^2)
+
+/**
+ * Solution using a Trie and DP can be implemented in two ways,
+ * 1. Use single dimension for memory and DP algorithm for subsequences
+ *    with loop in recursive function.
+ *    Above will yeild,
+ *    Time: O(N^2)
+ *    Space: O(N)
+ * 
+ *    Implementation: https://cses.fi/problemset/result/11405663/
+ * 
+ * 2. Run along the Trie and take all possible choices based on char from 
+ *    given string. This will yield,
+ *    Time: O(N^2)
+ *    Space: O(N^2)
+ */
+
 const int MOD = 1e9 + 7;
-const int MAX_STRING_LENGTH = 5000 + 1;
-const int ALPHABET = 26;
-vector<int> cache(MAX_STRING_LENGTH, -1);
- 
+const int ALPHABET_SZ = 26;
+
+int counter = 0;
+vector<vector<int>> dp;
+
 class TrieNode {
 public:
-    vector<TrieNode*> next;
-    bool isWord;
- 
+    bool is_word;
+    vector<TrieNode*> children;
+    int index;
+
     TrieNode() {
-        this->isWord = false;
-        this->next.assign(ALPHABET, NULL);
+        this->is_word = false;
+        this->children.assign(ALPHABET_SZ, NULL);
+        this->index = counter++;
     }
-}root;
+};
+
+TrieNode root;
 
 void insert_trie(string& S) {
     TrieNode* node = &root;
     for (char c : S) {
         int idx = c - 'a';
-        if (node->next[idx] == NULL)
-            node->next[idx] = new TrieNode();
+        if (node->children[idx] == NULL)
+            node->children[idx] = new TrieNode();
 
-        node = node->next[idx];
+        node = node->children[idx];
     }
 
-    node->isWord = true;
+    node->is_word = true;
 }
- 
-int dfs(int i, string& S, int N) {
+
+int dfs(int i, TrieNode* node, string& S, int N) {
     if (i == N)
-        return 1;
-    if (cache[i] != -1)
-        return cache[i];
+        return node->is_word ? 1 : 0;
+    if (dp[i][node->index] != -1)
+        return dp[i][node->index];
     
+    int idx = S[i] - 'a';
+    TrieNode* child = node->children[idx];
+    if (child == NULL)
+        return 0;
+
     int count = 0;
-    TrieNode* node = &root;
-    for (int j = i; j < N; j++) {
-        int idx = S[j] - 'a';
-        node = node->next[idx];
-        if (node == NULL)
-            break;
- 
-        if (node->isWord)
-            count = (count + dfs(j+1, S, N)) % MOD;
-    }
- 
-    return cache[i] = count;
+    if (child->is_word)
+        count = (count + dfs(i+1, &root, S, N)) % MOD;
+
+    count = (count + dfs(i+1, child, S, N)) % MOD;
+    
+    return dp[i][node->index] = count;
 }
- 
+
 void solve(string& S, vector<string>& A, int K) {
     int N = S.length();
-    for (string& s : A) {
-        string sub = s.substr(0, N); 
-        insert_trie(sub);
-    }
- 
-    int count = dfs(0, S, N);
+    dp.assign(N+1, vector<int>(N+1, -1));
+
+    for (string& w : A)
+        insert_trie(w);
+
+    int count = dfs(0, &root, S, N);
     cout << count << endl;
 }
  
