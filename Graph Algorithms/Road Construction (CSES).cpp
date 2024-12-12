@@ -2,60 +2,58 @@
 
 #include <iostream>
 #include <vector>
-#include <climits>
+#include <algorithm>
+#include <cmath>
 
 using namespace std;
 
-// Time: O(log*(V)) -> O(1)
+// Time: O(⍺(V))
 // Space: O(V)
+
+typedef pair<int,int> edge;
 
 vector<int> P, S;
 
 void dsu_init(int V) {
-    P.assign(V+1, 0);
+    P.assign(V+1, -1);
     S.assign(V+1, 1);
     for (int i = 0; i <= V; i++)
         P[i] = i;
 }
 
-int root(int u) {
-    if (P[u] != u)
-        P[u] = root(P[u]);
+int root(int x) {
+    if (P[x] != x)
+        P[x] = root(P[x]);
 
-    return P[u];
+    return P[x];
 }
 
-void union_set(int u, int v) {
-    int root_u = root(u);
-    int root_v = root(v);
-    if (root_u == root_v)
-        return;
+void union_set(int x, int y) {
+    int root_x = root(x);
+    int root_y = root(y);
+    if (root_x != root_y) {
+        if (S[root_x] < S[root_y])
+            swap(root_x, root_y);
 
-    if (S[root_u] >= S[root_v]) {
-        P[root_v] = P[root_u];
-        S[root_u] += S[root_v];
-        S[root_v] = -1;
-    } else {
-        P[root_u] = P[root_v];
-        S[root_v] += S[root_u];
-        S[root_u] = -1;
+        P[root_y] = P[root_x];
+        S[root_x] += S[root_y];
+        S[root_y] = -1;
     }
 }
 
-void solve(int V, vector<pair<int,int>>& edges, int E) {
+void solve(int V, vector<edge>& edges, int E) {
     dsu_init(V);
 
-    int max_size = INT_MIN, num_sets = V;
-    for (pair<int,int>& p : edges) {
-        int u = p.first, v = p.second;
-
+    int comp_cnt = V, sz_comp = 1;
+    for (auto& [u, v] : edges) {
         if (root(u) != root(v)) {
             union_set(u, v);
-            max_size = max({ max_size, S[root(u)], S[root(v)] });
-            num_sets--;
+
+            comp_cnt--;
+            sz_comp = max(sz_comp, max(S[root(u)], S[root(v)]));
         }
 
-        cout << num_sets << " " << max_size << endl;
+        cout << comp_cnt << " " << sz_comp << endl;
     }
 }
 
@@ -66,7 +64,7 @@ int main() {
     int V, E;
     cin >> V >> E;
 
-    vector<pair<int,int>> edges(E);
+    vector<edge> edges(E);
     int u, v;
     for (int i = 0; i < E; i++) {
         cin >> u >> v;

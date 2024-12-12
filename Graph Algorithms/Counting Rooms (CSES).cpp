@@ -1,44 +1,48 @@
 // Counting Rooms (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-
+ 
 using namespace std;
-
+ 
 // Time: O(N * M)
 // Space: O(N * M)
+ 
+vector<vector<int>> vis;
 
-vector<vector<int>> V;
-
-void dfs(vector<vector<char>>& G, int i, int j, int N, int M) {
-    if (i < 0 || j < 0 || i == N || j == M || V[i][j] == 1 || G[i][j] == '#')
+void dfs(int i, int j, vector<vector<char>>& A, int N, int M) {
+    if (i < 0 || i == N || j < 0 || j == M || A[i][j] == '#' || vis[i][j] != 0)
         return;
 
-    V[i][j] = 1;
+    vis[i][j] = 1;
 
-    dfs(G, i, j+1, N, M);   // right
-    dfs(G, i, j-1, N, M);   // left
-    dfs(G, i+1, j, N, M);   // up
-    dfs(G, i-1, j, N, M);   // down
+    dfs(i-1, j, A, N, M);
+    dfs(i+1, j, A, N, M);
+    dfs(i, j-1, A, N, M);
+    dfs(i, j+1, A, N, M);
+
+    vis[i][j] = 2;
 }
 
-void solve(vector<vector<char>>& G, int N, int M) {
-    V.assign(N, vector<int>(M, 0));
-    int counter = 0;
+void solve(vector<vector<char>>& A, int N, int M) {
+    vis.assign(N, vector<int>(M, 0));
+
+    int count = 0;
     for (int i = 0; i < N; i++)
-        for (int j = 0; j < M; j++)
-            if (V[i][j] == 0 && G[i][j] == '.') {
-                dfs(G, i, j, N, M);
-                counter++;
+        for (int j = 0; j < M; j++) {
+            if (vis[i][j] == 0 && A[i][j] == '.') {
+                dfs(i, j, A, N, M);
+                count++;
             }
+        }
 
-    cout << counter;
+    cout << count << endl;
 }
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-
+    
     int N, M;
     cin >> N >> M;
 
@@ -48,6 +52,6 @@ int main() {
             cin >> A[i][j];
 
     solve(A, N, M);
-
+    
     return 0;
 }
