@@ -10,12 +10,11 @@ using namespace std;
 // Space: O(N)
  
 /**
- * We can use doubly-linked list here,
- * as stepping function has constant time
- * complexity.
- * Traversal from one number to next will take 
- * constant time and list provides constant time
- * for delete operation
+ * We can use doubly-linked list here, as stepping 
+ * function has constant time complexity.
+ * 
+ * Traversal from one number to next will take constant 
+ * time and list provides constant time for delete operation.
  */
 void solve(int children_cnt) {
     list<int> dbly_ll;
