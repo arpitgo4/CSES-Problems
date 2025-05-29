@@ -6,38 +6,40 @@
  
 using namespace std;
  
-typedef long long ll;
- 
 // Time: O(N)
 // Space: O(N)
- 
-void solve(vector<int>& A, int N) {
-    stack<pair<int,int>> st;                    // monotonic stack of { A[i], i }
 
-    for (int i = 0; i < N; i++) {
-        while (!st.empty() && st.top().first >= A[i])
-            st.pop();
-
-        if (st.empty())
+void solve(vector<int>& nums, int num_cnt) {
+    stack<pair<int,int>> num_stack;                         // monotonically-decreasing stack
+    for (int i = 0; i < num_cnt; i++) {
+        while (!num_stack.empty() && num_stack.top().first >= nums[i]) {
+            num_stack.pop();
+        }
+        
+        if (num_stack.empty()) {
             cout << 0 << " ";
-        else cout << st.top().second << " ";
-            
-        st.push({ A[i], i+1 });
+        } else {
+            cout << num_stack.top().second << " ";
+        }
+
+        num_stack.push({ nums[i], i+1 });
     }
+    cout << endl;
 }
  
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int N;
-    cin >> N;
+    int num_cnt;
+    cin >> num_cnt;
+    
+    vector<int> nums(num_cnt);
+    for (int i = 0; i < num_cnt; i++) {
+        cin >> nums[i];
+    }
 
-    vector<int> A(N);
-    for (int i = 0; i < N; i++)
-        cin >> A[i];
-
-    solve(A, N);
+    solve(nums, num_cnt);
     
     return 0;
 }
