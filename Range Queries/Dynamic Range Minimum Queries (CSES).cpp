@@ -1,108 +1,99 @@
 // Dynamic Range Minimum Queries (CSES)
-
+ 
 #include <iostream>
 #include <vector>
+#include <cmath>
 #include <climits>
-
+ 
 using namespace std;
+ 
+// Time: O(NlogN)
+// Space: O(N)
+ 
+const int INF = INT_MAX;
 
-class SegmentTree {
-private:
-
-    vector<int> ST;
-    vector<int> A;
-    int N;
-
-    int build(int l, int h, int i) {
-        if (l > h)
-            return INT_MAX;
-        if (l == h)
-            return ST[i] = A[l];
-
-        int m = (h-l)/2 + l;
-        int a = build(l, m, 2*i+1);
-        int b = build(m+1, h, 2*i+2);
-
-        return ST[i] = min(a, b);
-    }
-
-    int query(int l, int h, int i, int p, int q) {
-        if (l > h)
-            return INT_MAX;
-        if (l == p && h == q)
-            return ST[i];
-        
-        int m = (h-l)/2 + l;
-        if (m >= q && m >= p)
-            return query(l, m, 2*i+1, p, q);
-        else if (q > m && p > m)
-            return query(m+1, h, 2*i+2, p, q);
-
-        return min(
-            query(l, m, 2*i+1, p, m),
-            query(m+1, h, 2*i+2, m+1, q)
-        );
-    }
-
-    int update(int l, int h, int i, int idx, int val) {
-        if (l > h)
-            return INT_MAX;
-        if (l == idx && l == h)
-            return ST[i] = A[idx] = val;
-
-        int m = (h-l)/2 + l;
-        if (idx <= m) {
-            return ST[i] = min(
-                update(l, m, 2*i+1, idx, val),
-                ST[2*i+2]
-            );
-        } else {
-            return ST[i] = min(
-                ST[2*i+1],
-                update(m+1, h, 2*i+2, idx, val)
-            );
-        }
-    }
-
+class MinSegmentTree {
 public:
-    SegmentTree(vector<int>& oA, int n) {
-        A = oA;
-        N = n;
-        ST.assign(4*N, INT_MAX);
-        build(0, N-1, 0);
+    MinSegmentTree(vector<int>& arr) {
+        int arr_sz = arr.size();
+        tree_.assign(arr_sz * 4, INF);
+        buildTree(0, arr_sz-1, 0, arr);
     }
 
-    int query(int l, int h) {
-        return query(0, N-1, 0, l, h);
+    int queryMin(int low, int high, int node_idx, int query_low, int query_high) {
+        if (query_low > query_high) {
+            return INF;
+        }
+        if (low == query_low && high == query_high) {
+            return tree_[node_idx];
+        }
+
+        int mid = (high - low) / 2 + low;
+        int left_min = queryMin(low, mid, 2*node_idx+1, query_low, min(mid, query_high));
+        int right_min = queryMin(mid+1, high, 2*node_idx+2, max(mid+1, query_low), query_high);
+
+        return min(left_min, right_min);
     }
 
-    int update(int idx, int val) {
-        return update(0, N-1, 0, idx, val);
+    void updatePoint(int low, int high, int node_idx, int update_idx, int update_val) {
+        if (update_idx < low || update_idx > high) {
+            return;
+        }
+        if (low == high) {
+            tree_[node_idx] = update_val;
+            return;
+        }
+
+        int mid = (high - low) / 2 + low;
+        updatePoint(low, mid, 2*node_idx+1, update_idx, update_val);
+        updatePoint(mid+1, high, 2*node_idx+2, update_idx, update_val);
+
+        tree_[node_idx] = min(tree_[2*node_idx+1], tree_[2*node_idx+2]);
+    }
+
+private:
+    vector<int> tree_;
+
+    void buildTree(int low, int high, int node_idx, vector<int>& arr) {
+        if (low == high) {
+            tree_[node_idx] = arr[low];
+            return;
+        }
+
+        int mid = (high - low) / 2 + low;
+        buildTree(low, mid, 2*node_idx+1, arr);
+        buildTree(mid+1, high, 2*node_idx+2, arr);
+
+        tree_[node_idx] = min(tree_[2*node_idx+1], tree_[2*node_idx+2]);
     }
 };
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int num_cnt, query_cnt;
+    cin >> num_cnt >> query_cnt;
 
-    int N, Q;
-    cin >> N >> Q;
-
-    vector<int> A(N);
-    for (int i = 0; i < N; i++)
-        cin >> A[i];
-
-    SegmentTree sg(A, N);
-
-    int t, a, b;
-    for (int i = 0; i < Q; i++) {
-        cin >> t >> a >> b;
-        if (t == 1) {
-            sg.update(a-1, b);
-        } else {
-            cout << sg.query(a-1, b-1) << endl;
-        }
+    vector<int> nums(num_cnt);
+    for (int i = 0; i < num_cnt; i++) {
+        cin >> nums[i];
     }
 
+    MinSegmentTree min_seg_tree(nums);
+
+    int query_type, range_low, range_high, update_idx, update_val;
+    for (int i = 0; i < query_cnt; i++) {
+        cin >> query_type;
+        if (query_type == 1) {
+            cin >> update_idx >> update_val;
+            min_seg_tree.updatePoint(0, num_cnt-1, 0, update_idx-1, update_val);
+        } else {
+            cin >> range_low >> range_high;
+            int min_val = min_seg_tree.queryMin(0, num_cnt-1, 0, range_low-1, range_high-1);
+            cout << min_val << endl;
+        }
+    }
+    
     return 0;
 }
