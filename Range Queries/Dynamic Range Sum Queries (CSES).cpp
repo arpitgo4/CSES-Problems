@@ -1,100 +1,98 @@
 // Dynamic Range Sum Queries (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-
+ 
 using namespace std;
-using ll = long long;
+ 
+// Time: O(NlogN)
+// Space: O(N)
+ 
+using ll_t = long long;
 
-class SegmentTree {
-private:
-    int N;
-    vector<ll> A;
-    vector<ll> ST;
-
-    ll build(int l, int h, int i) {
-        if (l > h)
-            return 0;
-        if (l == h)
-            return ST[i] = A[l];
-        
-        int m = (h-l)/2 + l;
-        return ST[i] = build(l, m, 2*i+1) + build(m+1, h, 2*i+2);
-    }
-
-    ll _query(int l, int h, int i, int  p, int q) {
-        if (l > h)
-            return 0;
-        if (l == p && h == q)
-            return ST[i];
-
-        int m = (h-l)/2 + l;
-        if (p <= m && q <= m)
-            return _query(l, m, 2*i+1, p, q);
-        else if (p > m && q > m)
-            return _query(m+1, h, 2*i+2, p, q);
-
-        return _query(l, m, 2*i+1, p, m) + _query(m+1, h, 2*i+2, m+1, q);
-    }
-
-    ll _update(int l, int h, int i, int idx, int val) {
-        if (l > h)
-            return 0;
-        if (l == h && l == idx)
-            return ST[i] = A[l] = val;
-
-        int m = (h-l)/2 + l;
-        if (idx <= m) {
-            ll updated_val = _update(l, m, 2*i+1, idx, val);
-            return ST[i] = updated_val + ST[2*i+2];
-        }
-        else {
-            ll updated_val = _update(m+1, h, 2*i+2, idx, val);
-            return ST[i] = ST[2*i+1] + updated_val;
-        }
-    }
+class SumSegmentTree {
 public:
-    SegmentTree(vector<ll>& OA) {
-        A = OA;
-        N = A.size();
-        ST.assign(4*N, 0);
-        build(0, N-1, 0);
+    SumSegmentTree(vector<ll_t>& arr) {
+        int arr_sz = arr.size();
+        tree_.assign(arr_sz * 4, 0);
+        buildTree(0, arr_sz-1, 0, arr);
     }
 
-    ll query(int l, int h) {
-        return _query(0, N-1, 0, l, h);
+    ll_t query(int low, int high, int node_idx, int query_low, int query_high) {
+        if (query_low > query_high) {
+            return 0;
+        }
+        if (low == query_low && high == query_high) {
+            return tree_[node_idx];
+        }
+
+        int mid = (high - low) / 2 + low;
+        ll_t left_sum = query(low, mid, 2*node_idx+1, query_low, min(mid, query_high));
+        ll_t right_sum = query(mid+1, high, 2*node_idx+2, max(mid+1, query_low), query_high);
+
+        return left_sum + right_sum;
     }
 
-    ll update(int idx, int val) {
-        return _update(0, N-1, 0, idx, val);
+    void update(int low, int high, int node_idx, int update_idx, int update_val) {
+        if (update_idx < low || update_idx > high) {
+            return;
+        }
+        if (low == high && update_idx == low) {
+            tree_[node_idx] = update_val;
+            return;
+        }
+
+        int mid = (high - low) / 2 + low;
+        update(low, mid, 2*node_idx+1, update_idx, update_val);
+        update(mid+1, high, 2*node_idx+2, update_idx, update_val);
+        
+        tree_[node_idx] = tree_[2*node_idx+1] + tree_[2*node_idx+2]; 
+    }
+
+private:
+    vector<ll_t> tree_;
+
+    void buildTree(int low, int high, int node_idx, vector<ll_t>& arr) {
+        if (low == high) {
+            tree_[node_idx] = arr[low];
+            return;
+        }
+
+        int mid = (high - low) / 2 + low;
+        buildTree(low, mid, 2*node_idx+1, arr);
+        buildTree(mid+1, high, 2*node_idx+2, arr);
+
+        tree_[node_idx] = tree_[2*node_idx+1] + tree_[2*node_idx+2];
     }
 };
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int num_cnt, query_cnt;
+    cin >> num_cnt >> query_cnt;
 
-    int N, Q;
-    cin >> N >> Q;
-
-    vector<ll> A(N);
-    for (int i = 0; i < N; i++)
-        cin >> A[i];
-
-    SegmentTree sg(A);
-
-    vector<ll> res;
-    int type, a, b;
-    for (int i = 0; i < Q; i++) {
-        cin >> type >> a >> b;        
-        if (type == 1)
-            sg.update(a-1, b);
-        else 
-            res.push_back(sg.query(a-1, b-1));
+    vector<ll_t> nums(num_cnt);
+    for (int i = 0; i < num_cnt; i++) {
+        cin >> nums[i];
     }
 
-    for (ll a : res)
-        cout << a << endl;
+    SumSegmentTree sum_seg_tree(nums);
 
+    int query_type, update_idx, update_val;
+    int range_low, range_high;
+    for (int i = 0; i < query_cnt; i++) {
+        cin >> query_type;
+        if (query_type == 1) {
+            cin >> update_idx >> update_val;
+            sum_seg_tree.update(0, num_cnt-1, 0, update_idx-1, update_val);
+        } else {
+            cin >> range_low >> range_high;
+            ll_t range_sum = sum_seg_tree.query(0, num_cnt-1, 0, range_low-1, range_high-1);
+            cout << range_sum << endl;
+        }
+    }
+    
     return 0;
 }
