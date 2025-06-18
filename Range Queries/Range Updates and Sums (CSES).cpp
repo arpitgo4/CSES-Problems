@@ -2,6 +2,7 @@
  
 #include <iostream>
 #include <vector>
+#include <deque>
  
 using namespace std;
  
@@ -35,6 +36,7 @@ public:
     SegmentTree(vector<ll_t>& arr) {
         int arr_sz = arr.size();
         tree_.assign(arr_sz * 4, 0);
+        deque_.assign(arr_sz * 4, deque<pair<int,int>>());
         buildTree(0, arr_sz-1, 0, arr);
     }
 
@@ -55,18 +57,62 @@ public:
         return left_sum + right_sum;
     }
 
-    void updateRange(int low, int high, int node_idx, int range_low, int range_high) {
+    void updateRange(int low, int high, int node_idx, int range_low, int range_high, int update_val) {
+        if (low > high) {
+            return;
+        }
+        if (low == range_low && high == range_high) {
+            tree_[node_idx] = update_val;
+            enqueueUpdate(low, high, node_idx, UPDATE_OPR);
+            return;
+        }
 
+        pushLazyUpdate(low, high, node_idx);
+
+        int mid = (high - low) / 2 + low;
+        updateRange(low, mid, 2*node_idx+1, range_low, min(mid, range_high), update_val);
+        updateRange(mid+1, high, 2*node_idx+2, max(mid+1, range_low), range_high, update_val);
+
+        tree_[node_idx] = tree_[2*node_idx+1] + tree_[2*node_idx+2];
     }
 
     void incrementRange(int low, int high, int node_idx, int range_low, int range_high) {
-        
+        if (low > high) {
+            return;
+        }
+        if (low == range_low && high == range_high) {
+            int seg_sz = high - low + 1;
+            tree_[node_idx] += seg_sz;
+            enqueueUpdate(low, high, node_idx, INCR_OPR);
+            return;
+        }
+
+        pushLazyUpdate(low, high, node_idx);
+
+        int mid = (high - low) / 2 + low;
+        incrementRange(low, mid, 2*node_idx+1, range_low, min(mid, range_high));
+        incrementRange(mid+1, high, 2*node_idx+2, max(mid+1, range_low), range_high);
+
+        tree_[node_idx] = tree_[2*node_idx+1] + tree_[2*node_idx+2];
     }
 
 private:
+    const int INCR_OPR = 1;
+    const int UPDATE_OPR = 2;
+
     vector<ll_t> tree_;
-    vector<ll_t> lazy_update_;
-    vector<ll_t> lazy_incr_;
+    vector<deque<pair<int,int>>> deque_;
+
+    void enqueueUpdate(int low, int high, int node_idx, int update_op) {
+        if (update_op == INCR_OPR) {
+            if (!deque_[node_idx].empty()) {
+                
+            }
+        } else {
+            // UPDATE_OPR
+
+        }
+    }
 
     void pushLazyUpdate(int low, int high, int node_idx) {
 
@@ -109,7 +155,7 @@ int main() {
             seg_tree.incrementRange(0, num_cnt-1, 0, range_low-1, range_high-1);
         } else if (query_type == 2) {
             cin >> update_val;
-            seg_tree.updateRange(0, num_cnt-1, 0, range_low-1, range_high-1);
+            seg_tree.updateRange(0, num_cnt-1, 0, range_low-1, range_high-1, update_val);
         } else {
             ll_t sum = seg_tree.querySum(0, num_cnt-1, 0, range_low-1, range_high-1);
             cout << sum << endl;
