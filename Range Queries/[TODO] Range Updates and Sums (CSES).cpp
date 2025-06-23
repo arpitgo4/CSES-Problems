@@ -57,13 +57,14 @@ public:
         return left_sum + right_sum;
     }
 
-    void updateRange(int low, int high, int node_idx, int range_low, int range_high, int update_val) {
-        if (low > high) {
+    void updateRange(int low, int high, int node_idx, int range_low, int range_high, ll_t update_val) {
+        if (range_low > range_high) {
             return;
         }
         if (low == range_low && high == range_high) {
-            tree_[node_idx] = update_val;
-            enqueueUpdate(low, high, node_idx, UPDATE_OPR);
+            int seg_sz = high - low + 1;
+            tree_[node_idx] = seg_sz * update_val;
+            enqueueUpdate(low, high, node_idx, UPDATE_OPR, update_val);
             return;
         }
 
@@ -77,7 +78,7 @@ public:
     }
 
     void incrementRange(int low, int high, int node_idx, int range_low, int range_high) {
-        if (low > high) {
+        if (range_low > range_high) {
             return;
         }
         if (low == range_low && high == range_high) {
@@ -101,16 +102,21 @@ private:
     const int UPDATE_OPR = 2;
 
     vector<ll_t> tree_;
-    vector<deque<pair<int,int>>> deque_;
+    vector<deque<tie<int,int,int,ll_t>>> deque_;
 
-    void enqueueUpdate(int low, int high, int node_idx, int update_op) {
+    void enqueueUpdate(int low, int high, int node_idx, int update_op, ll_t update_val) {
         if (update_op == INCR_OPR) {
             if (!deque_[node_idx].empty()) {
-                
+                int op_type = deque_[node_idx].front();
+            } else {
+                deque_[node_idx].push_front({ low, high, update_op, -1 });
             }
         } else {
-            // UPDATE_OPR
+            while (!deque_[node_idx].empty()) {
+                deque_[node_idx].pop_front();
+            }
 
+            deque_[node_idx].push_front({ low, high, update_op, update_val });
         }
     }
 
