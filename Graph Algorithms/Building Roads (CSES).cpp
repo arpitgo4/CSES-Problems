@@ -1,82 +1,92 @@
 // Building Roads (CSES)
-
+ 
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
+#include <numeric>
+ 
 using namespace std;
+ 
+// Time: O(N * ⍺(M))
+// Space: O(N)
+ 
+using road_t = pair<int,int>;
 
-// Time: O(E*⍺(V) + V*⍺(V)) ~ O(V + E)
-// Space: O(V + E)
-
-typedef pair<int,int> edge;
-
-vector<int> P, S;
-
-void init_dsu(int N) {
-    P.assign(N+1, -1);
-    S.assign(N+1, 1);
-    for (int i = 0; i <= N; i++)
-        P[i] = i;
-}
-
-int root(int x) {
-    if (P[x] != x)
-        P[x] = root(P[x]);
-
-    return P[x];
-}
-
-void union_set(int x, int y) {
-    int root_x = root(x);
-    int root_y = root(y);
-    if (root_x != root_y) {
-        if (S[root_x] < S[root_y])
-            swap(root_x, root_y);
-
-        P[root_y] = root_x;
-        S[root_x] += S[root_y];
+class DisjointSet {
+public:
+    DisjointSet(int set_sz) {
+        parent_.assign(set_sz+1, 0);
+        iota(parent_.begin(), parent_.end(), 0);
+        sz_.assign(set_sz+1, 1);
     }
-}
 
-void solve(int V, vector<edge>& edges, int E) {
-    init_dsu(V);
+    int root(int x) {
+        if (parent_[x] != x) {
+            parent_[x] = root(parent_[x]);
+        }
 
-    int comp_cnt = V;
-    for (auto& [u, v] : edges) {
-        if (root(u) != root(v)) {
-            union_set(u, v);
-            comp_cnt--;
+        return parent_[x];
+    }
+
+    void union_set(int x, int y) {
+        int root_x = root(x);
+        int root_y = root(y);
+        if (root_x != root_y) {
+            if (sz_[root_x] < sz_[root_y])
+                swap(root_x, root_y);
+
+            parent_[root_y] = root_x;
+            sz_[root_x] += sz_[root_y];
         }
     }
 
-    cout << (comp_cnt-1) << endl;
+private:
+    vector<int> parent_;
+    vector<int> sz_;
+};
+
+void solve(int city_cnt, vector<road_t>& roads, int road_cnt) {
+    DisjointSet roads_set(city_cnt);
+
+    for (auto& [ road_end_1, road_end_2 ] : roads) {
+        if (roads_set.root(road_end_1) != roads_set.root(road_end_2)) {
+            roads_set.union_set(road_end_1, road_end_2);
+        }
+    }
+
+    vector<road_t> required_roads;
     int prev_root = -1;
-    for (int u = 1; u <= V; u++) {
-        if (root(u) == u) {
-            if (prev_root != -1)
-                cout << prev_root << " " << u << endl;
+    for (int i = 1; i <= city_cnt; i++) {
+        if (roads_set.root(i) == i) {
+            if (prev_root != -1) {
+                required_roads.push_back({ prev_root, i });
+            }
 
-            prev_root = u;
+            prev_root = i;
         }
     }
-}
 
+    cout << required_roads.size() << endl;
+    for (auto& [ road_end_1, road_end_2 ] : required_roads) {
+        cout << road_end_1 << " " << road_end_2 << endl;
+    }
+}
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int city_cnt, road_cnt;
+    cin >> city_cnt >> road_cnt;
 
-    int V, E;
-    cin >> V >> E;
-
-    int u, v;
-    vector<edge> edges(E);
-    for (int i = 0; i < E; i++) {
-        cin >> u >> v;
-        edges[i] = { u, v };
+    int road_end_1, road_end_2;
+    vector<road_t> roads(road_cnt);
+    for (int i = 0; i < road_cnt; i++) {
+        cin >> road_end_1 >> road_end_2;
+        roads[i] = { road_end_1, road_end_2 };
     }
 
-    solve(V, edges, E);
-
+    solve(city_cnt, roads, road_cnt);
+    
     return 0;
 }
