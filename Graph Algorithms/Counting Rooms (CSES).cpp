@@ -8,50 +8,74 @@ using namespace std;
 // Time: O(N * M)
 // Space: O(N * M)
  
-vector<vector<int>> vis;
+vector<pair<int,int>> moves {
+    { -1, 0 },              // up
+    { 1, 0 },               // down
+    { 0, -1 },              // left
+    { 0, 1 }                // right
+};
 
-void dfs(int i, int j, vector<vector<char>>& A, int N, int M) {
-    if (i < 0 || i == N || j < 0 || j == M || A[i][j] == '#' || vis[i][j] != 0)
+void exploreRoom(
+    int curr_i,
+    int curr_j,
+    vector<vector<int>>& chart,
+    int chart_height,
+    int chart_width,
+    vector<vector<int>>& vis
+) {
+    if (curr_i < 0 || 
+            curr_i == chart_height ||
+            curr_j < 0 ||
+            curr_j == chart_width || 
+            chart[curr_i][curr_j] == 1 || 
+            vis[curr_i][curr_j] == 1) {
         return;
+    }
 
-    vis[i][j] = 1;
+    vis[curr_i][curr_j] = 1;
 
-    dfs(i-1, j, A, N, M);
-    dfs(i+1, j, A, N, M);
-    dfs(i, j-1, A, N, M);
-    dfs(i, j+1, A, N, M);
-
-    vis[i][j] = 2;
+    for (auto& move : moves) {
+        int next_i = curr_i + move.first;
+        int next_j = curr_j + move.second;
+        exploreRoom(next_i, next_j, chart, chart_height, chart_width, vis);
+    }
 }
 
-void solve(vector<vector<char>>& A, int N, int M) {
-    vis.assign(N, vector<int>(M, 0));
+void solve(vector<vector<int>>& chart, int chart_height, int chart_width) {
+    vector<vector<int>> vis(chart_height+1, vector<int>(chart_width+1, 0));
 
-    int count = 0;
-    for (int i = 0; i < N; i++)
-        for (int j = 0; j < M; j++) {
-            if (vis[i][j] == 0 && A[i][j] == '.') {
-                dfs(i, j, A, N, M);
-                count++;
+    int room_cnt = 0;
+    for (int i = 0; i < chart_height; i++) {
+        for (int j = 0; j < chart_width; j++) {
+            if (chart[i][j] == 0 && vis[i][j] == 0) {
+                room_cnt++;
+                exploreRoom(i, j, chart, chart_height, chart_width, vis);
             }
         }
+    }
 
-    cout << count << endl;
+    cout << room_cnt << endl;
 }
  
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int N, M;
-    cin >> N >> M;
+    int chart_height, chart_width;
+    cin >> chart_height >> chart_width;
 
-    vector<vector<char>> A(N, vector<char>(M));
-    for (int i = 0; i < N; i++)
-        for (int j = 0; j < M; j++)
-            cin >> A[i][j];
+    char ch;
+    vector<vector<int>> chart(chart_height, vector<int>(chart_width, 0));
+    for (int i = 0; i < chart_height; i++) {
+        for (int j = 0; j < chart_width; j++) {
+            cin >> ch;
+            if (ch == '#') {
+                chart[i][j] = 1;
+            }
+        }
+    }
 
-    solve(A, N, M);
+    solve(chart, chart_height, chart_width);
     
     return 0;
 }
