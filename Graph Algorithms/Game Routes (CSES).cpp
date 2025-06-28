@@ -1,63 +1,91 @@
 // Game Routes (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-
+ 
 using namespace std;
-
+ 
 // Time: O(V + E)
 // Space: O(V + E)
 
-/**
- * No need to do topological sort first. As problem states that the game routes is a DAG and we already have the
- * starting point Level-1. Dynamic Programming is enough to count number of possible routes in the given DAG.
-*/
+using ll_t = long long;
+using graph_t = vector<vector<int>>;
 
-const int MOD = 1e9 + 7;
-vector<vector<int>> G;
-vector<int> cache;
+const ll_t MOD = 1e9 + 7;
 
-int dfs(int u, int dest) {
-    if (u == dest)
+class Teleporter {
+public:
+    int src_;
+    int dest_;
+    Teleporter(int src, int dest) {
+        src_ = src;
+        dest_ = dest;
+    }
+};
+
+ll_t countWaysToReachDestination(
+    int curr_level,
+    int dest_level,
+    graph_t& adj_list,
+    vector<ll_t>& dp
+) {
+    if (curr_level == dest_level)
         return 1;
-    if (cache[u] != -1)
-        return cache[u];
+    if (dp[curr_level] != -1)
+        return dp[curr_level];
 
-    int count = 0;
-    for (int v : G[u])
-        count = (count + dfs(v, dest)) % MOD;
+    ll_t ways_cnt = 0;
+    for (int next_level : adj_list[curr_level]) {
+        ll_t curr_cnt = countWaysToReachDestination(
+            next_level,
+            dest_level,
+            adj_list,
+            dp
+        );
 
-    return cache[u] = count;
-}
-
-void solve(int V, int E, vector<pair<int,int>>& edges) {
-    G.assign(V+1, vector<int>());
-    cache.assign(V+1, -1);
-
-    for (pair<int,int>& p : edges) {
-        int u = p.first, v = p.second;
-        G[u].push_back(v);
+        ways_cnt = (ways_cnt + curr_cnt) % MOD;
     }
 
-    int count = dfs(1, V);
-    cout << count;
+    return dp[curr_level] = ways_cnt;
 }
 
+void solve(
+    int level_cnt,
+    vector<Teleporter>& teleporters,
+    int teleporter_cnt
+) {
+    
+    graph_t adj_list(level_cnt+1, vector<int>());
+    for (Teleporter& teleporter : teleporters) {
+        adj_list[teleporter.src_].push_back(teleporter.dest_);
+    }
+
+    vector<ll_t> dp(level_cnt+1, -1);
+    ll_t ways_cnt = countWaysToReachDestination(
+        1,
+        level_cnt,
+        adj_list,
+        dp
+    );
+
+    cout << ways_cnt << endl;
+}
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int level_cnt, teleporter_cnt;
+    cin >> level_cnt >> teleporter_cnt;
 
-    int V, E;
-    cin >> V >> E;
-
-    vector<pair<int,int>> edges(E);
-    int u, v;
-    for (int i = 0; i < E; i++) {
-        cin >> u >> v;
-        edges[i] = { u, v };
+    int from_level, to_level;
+    vector<Teleporter> teleporters;
+    for (int i = 0; i < teleporter_cnt; i++) {
+        cin >> from_level >> to_level;
+        teleporters.emplace_back(from_level, to_level);
     }
 
-    solve(V, E, edges);
-
+    solve(level_cnt, teleporters, teleporter_cnt);
+    
     return 0;
 }
