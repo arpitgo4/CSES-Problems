@@ -29,7 +29,6 @@ public:
     }
 };
 
-
 void findShortestPathFromSource(
     int source,
     graph_t& adj_list,
