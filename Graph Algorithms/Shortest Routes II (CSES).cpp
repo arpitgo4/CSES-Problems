@@ -1,67 +1,113 @@
 // Shortest Routes II (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-#include <tuple>
-#include <cmath>
 #include <climits>
-
+ 
 using namespace std;
-
+ 
 // Time: O(V^3)
-// Space: O(1)
+// Space: O(V^2)
+ 
+using ll_t = long long;
 
-#define INF LLONG_MAX
+const ll_t INF = LLONG_MAX;
 
-typedef long long ll;
-typedef tuple<int,int,ll> edge;
+class Query {
+public:
+    int city_a_;
+    int city_b_;
+    Query(int city_a, int city_b) {
+        city_a_ = city_a;
+        city_b_ = city_b;
+    }
+};
+class Road {
+public:
+    int road_end_1_;
+    int road_end_2_;
+    ll_t road_len_;
+    Road(int road_end_1, int road_end_2, ll_t road_len) {
+        road_end_1_ = road_end_1;
+        road_end_2_ = road_end_2;
+        road_len_ = road_len;
+    }
+};
 
-vector<vector<ll>> G;
-
-void floyd_warshall_apsp(int V) {
-    for (int u = 1; u <= V; u++)                // distance to self is zero
-        G[u][u] = 0;
-
-    for (int k = 1; k <= V; k++)
-        for (int u = 1; u <= V; u++)
-            for (int v = 1; v <= V; v++) {
-                if (G[u][k] != INF && G[k][v] != INF)
-                    G[v][u] = G[u][v] = min(G[u][v], G[u][k] + G[k][v]);
+void findAllPairsShortestPath(
+    vector<vector<ll_t>>& adj_mat,
+    int city_cnt
+) {
+    for (int inter = 1; inter <= city_cnt; inter++) {
+        for (int city_a = 1; city_a <= city_cnt; city_a++) {
+            for (int city_b = 1; city_b <= city_cnt; city_b++) {
+                if (adj_mat[city_a][inter] != INF && adj_mat[inter][city_b] != INF) {
+                    adj_mat[city_a][city_b] = min<ll_t>(
+                        adj_mat[city_a][city_b],
+                        adj_mat[city_a][inter] + adj_mat[inter][city_b]
+                    );
+                }
             }
+        }
+    }
 }
 
-void solve(vector<edge>& edges, int V, int E) {
-    G.assign(V+1, vector<ll>(V+1, INF));
-
-    int u, v; ll w;
-    for (edge& e : edges) {
-        tie(u, v, w) = e;
-        G[v][u] = G[u][v] = min({ G[v][u], G[u][v], w });      // if there are multiple edges between a pair of vertex
+void solve(
+    int city_cnt,
+    vector<Road>& roads,
+    int road_cnt,
+    vector<Query>& queries
+) {
+    vector<vector<ll_t>> adj_mat(city_cnt+1, vector<ll_t>(city_cnt+1, INF));
+    for (int i = 0; i <= city_cnt; i++) {
+        adj_mat[i][i] = 0;
     }
 
-    floyd_warshall_apsp(V);
-}
+    for (auto& [ road_end_1, road_end_2, road_len ] : roads) {
+        adj_mat[road_end_1][road_end_2] = min<ll_t>(
+            adj_mat[road_end_1][road_end_2], 
+            road_len
+        );
+        adj_mat[road_end_2][road_end_1] = min<ll_t>(
+            adj_mat[road_end_2][road_end_1], 
+            road_len
+        );
+    }
 
+    findAllPairsShortestPath(
+        adj_mat,
+        city_cnt
+    );
+
+    for (auto& [city_a, city_b] : queries) {
+        ll_t dist = adj_mat[city_a][city_b];
+        cout << (dist == INF ? -1 : dist) << endl;
+    }
+}
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int city_cnt, road_cnt, query_cnt;
+    cin >> city_cnt >> road_cnt >> query_cnt;
 
-    int V, E, Q;
-    cin >> V >> E >> Q;
-
-    int u, v; ll w;
-    vector<edge> edges(E);
-    for (int i = 0; i < E; i++) {
-        cin >> u >> v >> w;
-        edges[i] = { u, v, w };
+    int road_end_1, road_end_2;
+    ll_t road_len;
+    vector<Road> roads;
+    for (int i = 0; i < road_cnt; i++) {
+        cin >> road_end_1 >> road_end_2 >> road_len;
+        roads.emplace_back(road_end_1, road_end_2, road_len);
     }
 
-    solve(edges, V, E);
-
-    for (int i = 0; i < Q; i++) {
-        cin >> u >> v;
-        cout << (G[u][v] == INF ? -1 : G[u][v]) << endl; 
+    int city_a, city_b;
+    vector<Query> queries;
+    for (int i = 0; i < query_cnt; i++) {
+        cin >> city_a >> city_b;
+        queries.emplace_back(city_a, city_b);
     }
 
+    solve(city_cnt, roads, road_cnt, queries);
+    
     return 0;
 }
