@@ -3,92 +3,139 @@
 #include <iostream>
 #include <vector>
 #include <stack>
+#include <algorithm>
  
 using namespace std;
-
+ 
 // Time: O(V + E)
 // Space: O(V + E)
- 
-vector<vector<int>> G;
-vector<bool> on_stack;
-vector<int> depth;
-stack<int> st;
 
-void print_cycle(int v) {
-    cout << v << " ";
-    int u;
+class Road {
+public:
+    int city_1_;
+    int city_2_;
+    Road(int city_1, int city_2) {
+        city_1_ = city_1;
+        city_2_ = city_2;
+    }
+};
+
+void printRoundTrip(
+    int start_city,
+    int curr_city,
+    vector<int>& parent
+) {
+    vector<int> trip{ start_city };
+    int __curr_city = curr_city;
     do {
-        u = st.top();
-        st.pop();
-        on_stack[u] = false;
-        cout << u << " ";
-    } while (u != v);
-}
+        trip.push_back(__curr_city);
+        __curr_city = parent[__curr_city];
+    } while (__curr_city != start_city);
+    trip.push_back(start_city);
 
-bool dfs(int u, int dep) {
-    st.push(u);
-    on_stack[u] = true;
-    depth[u] = dep;
+    reverse(trip.begin(), trip.end());
 
-    for (int v : G[u]) {
-        if (!on_stack[v]) {
-            bool trip_found = dfs(v, dep+1);
-            if (trip_found)
-                return true;
+    cout << trip.size() << endl;
+    for (int city : trip)
+        cout << city << " ";
+    cout << endl;
+};
+
+bool findRoundTrip(
+    int curr_city,
+    vector<vector<int>>& adj_list,
+    stack<int>& city_stack,
+    vector<bool>& on_city_stack,
+    vector<int>& depth,
+    vector<int>& parent,
+    vector<int>& vis
+) {
+    vis[curr_city] = 1;
+    city_stack.push(curr_city);
+    on_city_stack[curr_city] = true;
+
+    bool trip_found = false;
+    for (int next_city : adj_list[curr_city]) {
+        if (trip_found) {
+            break;
         }
-        else {
-            int cycle_len = depth[u] - depth[v] + 1;
-            if (cycle_len > 2) {
-                cout << (cycle_len+1) << endl;
-                print_cycle(v);
-                return true;
+
+        if (!on_city_stack[next_city]) {
+            depth[next_city] = depth[curr_city] + 1;
+            parent[next_city] = curr_city;
+            trip_found = findRoundTrip(
+                next_city,
+                adj_list,
+                city_stack,
+                on_city_stack,
+                depth,
+                parent,
+                vis
+            );
+        } else {
+            int city_cnt_in_cycle = depth[curr_city] - depth[next_city] + 1;
+            if (city_cnt_in_cycle >= 3) {
+                trip_found = true;
+                printRoundTrip(next_city, curr_city, parent);
             }
         }
     }
 
-    if (!st.empty()) {
-        st.pop();
-        on_stack[u] = false;
-    }
+    city_stack.pop();
+    on_city_stack[curr_city] = false;
 
-    return false;
+    return trip_found;
 }
 
-void solve(vector<pair<int,int>>& edges, int V, int E) {
-    G.assign(V+1, vector<int>());
-    on_stack.assign(V+1, false);
-    depth.assign(V+1, -1);
-    for (pair<int,int>& e : edges) {
-        int u = e.first, v = e.second;
-        G[u].push_back(v);
-        G[v].push_back(u);
+void solve(int city_cnt, vector<Road>& roads, int road_cnt) {
+    vector<vector<int>> adj_list(city_cnt+1, vector<int>());
+    for (auto& [ city_1, city_2 ] : roads) {
+        adj_list[city_1].push_back(city_2);
+        adj_list[city_2].push_back(city_1);
     }
 
-    for (int u = 1; u <= V; u++)
-        if (depth[u] == -1) {
-            bool trip_found = dfs(u, 0);
-            if (trip_found)
-                return;
-        }
+    stack<int> city_stack;
+    vector<bool> on_city_stack(city_cnt+1, false);
+    vector<int> vis(city_cnt+1, 0);
+    vector<int> depth(city_cnt+1, -1);
+    vector<int> parent(city_cnt+1, -1);
 
-    cout << "IMPOSSIBLE";
+    bool trip_found = false;
+    for (int i = 1; i <= city_cnt && !trip_found; i++) {
+        if (vis[i] == 0) {
+            depth[i] = 0;
+            trip_found = findRoundTrip(
+                i,
+                adj_list,
+                city_stack,
+                on_city_stack,
+                depth,
+                parent,
+                vis
+            );
+        }
+    }
+
+    if (!trip_found) {
+        cout << "IMPOSSIBLE" << endl;
+    }
 }
  
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int V, E;
-    cin >> V >> E;
+    int city_cnt, road_cnt;
+    cin >> city_cnt >> road_cnt;
 
-    int u, v;
-    vector<pair<int,int>> edges(E);
-    for (int i = 0; i < E; i++) {
-        cin >> u >> v;
-        edges[i] = { u, v };    
+    int city_1, city_2;
+    vector<Road> roads;
+    for (int i = 0; i < road_cnt; i++) {
+        cin >> city_1 >> city_2;
+        roads.emplace_back(city_1, city_2);
     }
 
-    solve(edges, V, E);
+    solve(city_cnt, roads, road_cnt);
     
     return 0;
 }
