@@ -67,7 +67,7 @@ bool findRoundTrip(
                 parent,
                 vis
             );
-        } else if (vis[next_city] == 1) {
+        } else if (vis[next_city] == 1) {                                           // back-edge or bidirectional edge to parent
             int city_cnt_in_cycle = depth[curr_city] - depth[next_city] + 1;
             if (city_cnt_in_cycle >= 2) {
                 trip_found = true;
