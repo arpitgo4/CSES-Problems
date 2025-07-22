@@ -1,5 +1,5 @@
 // Flight Routes Check (CSES)
-
+ 
 #include <iostream>
 #include <vector>
 #include <stack>
@@ -8,99 +8,133 @@ using namespace std;
  
 // Time: O(V + E)
 // Space: O(V + E)
- 
-typedef pair<int,int> edge;
- 
-vector<vector<int>> G;
-vector<int> vis, low_link, s_time;
-vector<int> scc_roots, P;          // P, path-compressed parent-pointer tree
-vector<bool> on_stack;
-stack<int> st;
 
-int timer = 0;
+using graph_t = vector<vector<int>>;
 
-void dfs(int u) {
-    low_link[u] = s_time[u] = timer++;
-    st.push(u);
-    on_stack[u] = true;
-    vis[u] = 1;
+class Flight {
+public:
+    int src_city_;
+    int dest_city_;
+    Flight(int src_city, int dest_city) {
+        src_city_ = src_city;
+        dest_city_ = dest_city;
+    }
+};
 
-    for (int v : G[u]) {
-        if (vis[v] == 0) {                                  // tree-edge
-            dfs(v);
-            low_link[u] = min(low_link[u], low_link[v]);
-        } else if (on_stack[v]) {                           // back-edge
-            low_link[u] = min(low_link[u], s_time[v]);
-        } else {
-                                                            // cross-edge or forward edge
-            // vis[v] == 1 || on_stack[v] == false
-            // v is visited before OR v is not on stack (not an ancestor)
-            // if v is not on stack that means it's outside of current DFS tree
-            // but it can also be an upcoming child vertex (i.e. forward edge)
+void findStronglyConnectedComponents(
+    int curr_city,
+    graph_t& adj_list,
+    int& curr_time,
+    vector<int>& vis,
+    stack<int>& city_stack,
+    vector<bool>& on_city_stack,
+    vector<int>& start_time,
+    vector<int>& low_link,
+    vector<vector<int>>& scc_list
+) {
+    vis[curr_city] = 1;
+    start_time[curr_city] = curr_time++;
+    low_link[curr_city] = start_time[curr_city];
+    city_stack.push(curr_city);
+    on_city_stack[curr_city] = true;
+
+    for (int next_city : adj_list[curr_city]) {
+        if (vis[next_city] == 0) {
+            findStronglyConnectedComponents(
+                next_city,
+                adj_list,
+                curr_time,
+                vis,
+                city_stack,
+                on_city_stack,
+                start_time,
+                low_link,
+                scc_list
+            );
+            low_link[curr_city] = min(
+                low_link[curr_city], 
+                low_link[next_city]
+            );
+        } else if (on_city_stack[next_city]) {
+            low_link[curr_city] = min(
+                low_link[curr_city],
+                start_time[next_city]
+            );
         }
     }
 
-    if (low_link[u] == s_time[u]) {
-        int v;
+    if (low_link[curr_city] == start_time[curr_city]) {
+        int city_on_stack;
+        scc_list.emplace_back();
+        vector<int>& scc = scc_list.back();
         do {
-            v = st.top();
-            st.pop();
-            on_stack[v] = false;
-            P[v] = u;
-        } while (v != u);
-
-        scc_roots.push_back(u);
+            city_on_stack = city_stack.top();
+            city_stack.pop();
+            on_city_stack[city_on_stack] = false;
+            scc.push_back(city_on_stack);
+        } while (city_on_stack != curr_city);
     }
 }
-
-void solve(vector<edge>& edges, int V, int E) {
-    G.assign(V+1, vector<int>());
-    vis.assign(V+1, 0);
-    s_time.assign(V+1, -1);
-    low_link.assign(V+1, -1);
-    P.assign(V+1, -1);
-    on_stack.assign(V+1, false);
-    for (edge& e : edges) {
-        int u = e.first, v = e.second;
-        G[u].push_back(v);
+ 
+void solve(
+    int city_cnt,
+    vector<Flight>& flights,
+    int flight_cnt
+) {
+    graph_t adj_list(city_cnt+1, vector<int>());
+    for (auto& [ src_city, dest_city ] : flights) {
+        adj_list[src_city].push_back(dest_city);
     }
 
-    for (int u = 1; u <= V; u++)
-        if (vis[u] == 0)
-            dfs(u);
+    int time = 0;
+    vector<int> vis(city_cnt+1, 0);
+    stack<int> city_stack;
+    vector<bool> on_city_stack(city_cnt+1, false);
+    vector<int> start_time(city_cnt+1, -1);
+    vector<int> low_link(city_cnt+1, -1);
+    vector<vector<int>> scc_list;
 
-    if (scc_roots.size() == 1) {
+    for (int curr_city = 1; curr_city <= city_cnt; curr_city++) {
+        if (vis[curr_city] == 0) {
+            findStronglyConnectedComponents(
+                curr_city,
+                adj_list,
+                time,
+                vis,
+                city_stack,
+                on_city_stack,
+                start_time,
+                low_link,
+                scc_list
+            );    
+        }
+    }
+
+    if (scc_list.size() == 1) {
         cout << "YES" << endl;
-        return;
     } else {
         cout << "NO" << endl;
-        for (edge& e : edges) {
-            int u = e.first, v = e.second;
-            if (P[u] != P[v]) {
-                cout << v << " " << u << endl;
-                return;
-            }
-        }
-
-        cout << scc_roots[0] << " " << scc_roots[1] << endl;     // if the condensed graph is disconnected
+        vector<int>& scc_1 = scc_list[0];
+        vector<int>& scc_2 = scc_list[1];
+        cout << scc_1.front() << " " << scc_2.front() << endl;
     }
-}
+};
  
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int V, E;
-    cin >> V >> E;
+    int city_cnt, flight_cnt;
+    cin >> city_cnt >> flight_cnt;
 
-    int u, v;
-    vector<edge> edges(E);
-    for (int i = 0; i < E; i++) {
-        cin >> u >> v;
-        edges[i] = { u, v };
+    int src_city, dest_city;
+    vector<Flight> flights;
+    for (int i = 0; i < flight_cnt; i++) {
+        cin >> src_city >> dest_city;
+        flights.emplace_back(src_city, dest_city);
     }
 
-    solve(edges, V, E);
+    solve(city_cnt, flights, flight_cnt);
     
     return 0;
 }
