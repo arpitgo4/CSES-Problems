@@ -2,7 +2,6 @@
  
 #include <iostream>
 #include <vector>
-#include <stack>
 #include <algorithm>
  
 using namespace std;
@@ -43,16 +42,12 @@ void printRoundTrip(
 
 bool findRoundTrip(
     int curr_city,
+    int curr_city_parent,
     vector<vector<int>>& adj_list,
-    stack<int>& city_stack,
-    vector<bool>& on_city_stack,
-    vector<int>& depth,
     vector<int>& parent,
     vector<int>& vis
 ) {
     vis[curr_city] = 1;
-    city_stack.push(curr_city);
-    on_city_stack[curr_city] = true;
 
     bool trip_found = false;
     for (int next_city : adj_list[curr_city]) {
@@ -60,29 +55,20 @@ bool findRoundTrip(
             break;
         }
 
-        if (!on_city_stack[next_city]) {
-            depth[next_city] = depth[curr_city] + 1;
+        if (vis[next_city] == 0) {
             parent[next_city] = curr_city;
             trip_found = findRoundTrip(
                 next_city,
+                curr_city,
                 adj_list,
-                city_stack,
-                on_city_stack,
-                depth,
                 parent,
                 vis
             );
-        } else {
-            int city_cnt_in_cycle = depth[curr_city] - depth[next_city] + 1;
-            if (city_cnt_in_cycle >= 3) {
-                trip_found = true;
-                printRoundTrip(next_city, curr_city, parent);
-            }
+        } else if (vis[next_city] != 0 && curr_city_parent != next_city) {
+            trip_found = true;
+            printRoundTrip(next_city, curr_city, parent);
         }
     }
-
-    city_stack.pop();
-    on_city_stack[curr_city] = false;
 
     return trip_found;
 }
@@ -94,22 +80,16 @@ void solve(int city_cnt, vector<Road>& roads, int road_cnt) {
         adj_list[city_2].push_back(city_1);
     }
 
-    stack<int> city_stack;
-    vector<bool> on_city_stack(city_cnt+1, false);
     vector<int> vis(city_cnt+1, 0);
-    vector<int> depth(city_cnt+1, -1);
     vector<int> parent(city_cnt+1, -1);
 
     bool trip_found = false;
     for (int i = 1; i <= city_cnt && !trip_found; i++) {
         if (vis[i] == 0) {
-            depth[i] = 0;
             trip_found = findRoundTrip(
                 i,
+                i,
                 adj_list,
-                city_stack,
-                on_city_stack,
-                depth,
                 parent,
                 vis
             );
