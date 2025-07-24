@@ -47,17 +47,17 @@ void findShortestRoutePrices(
     > city_queue(cmp);
 
     vector<ll_t> dist(city_cnt+1, INF);
-    vector<int> dist_counter(city_cnt+1, 0);
+    vector<int> city_relax_counter(city_cnt+1, 0);
     dist[src_city] = 0;
-    dist_counter[src_city] = 0;
+    city_relax_counter[src_city] = 0;
     city_queue.emplace(dist[src_city], src_city);
 
     while (!city_queue.empty()) {
         auto [ curr_dist, curr_city ] = city_queue.top();
         city_queue.pop();
 
-        dist_counter[curr_city]++;
-        if (dist_counter[curr_city] > shortest_route_cnt) {
+        city_relax_counter[curr_city]++;
+        if (city_relax_counter[curr_city] > shortest_route_cnt) {
             continue;
         }
         if (curr_city == dest_city) {
