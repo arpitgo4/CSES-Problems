@@ -16,38 +16,49 @@ void solve(
     int wnd_sz
 ) {
     unordered_map<int,int> freq_map;
-
-    auto cmp = [&](auto& a, auto& b) {
-        if (freq_map[a] == freq_map[b]) {
-            return a > b;
-        }
-        return freq_map[a] < freq_map[b];
-    };
-    set<int, decltype(cmp)> elem_set(cmp);
-
+    unordered_map<int, set<int>> freq_bucket;
+    int max_freq = 0;
     for (int i = 0; i < wnd_sz; i++) {
-        int element = elements[i];
-        elem_set.erase(element);
-        freq_map[element]++;
-        elem_set.emplace(element);
-    }
+        int elem = elements[i];
+        int old_freq = freq_map[elem];
+        freq_map[elem]++;
+        int new_freq = freq_map[elem];
 
-    cout << (*elem_set.rbegin()) << " ";
-    for (int i = wnd_sz; i < elem_cnt; i++) {
-        int elem_to_insert = elements[i];
-        elem_set.erase(elem_to_insert);
-        freq_map[elem_to_insert]++;
-        elem_set.emplace(elem_to_insert);
-
-        int elem_to_remove = elements[i-wnd_sz];
-        elem_set.erase(elem_to_remove);
-        freq_map[elem_to_remove]--;
-        if (freq_map[elem_to_remove] > 0) {
-            elem_set.emplace(elem_to_remove);
+        if (old_freq > 0) {
+            freq_bucket[old_freq].erase(elem);
         }
 
-        cout << (*elem_set.rbegin()) << " ";
+        freq_bucket[new_freq].emplace(elem);
+        max_freq = max(max_freq, new_freq);
     }
+
+    cout << (*freq_bucket[max_freq].begin()) << " ";
+    for (int i = wnd_sz; i < elem_cnt; i++) {
+        int elem_insert = elements[i];
+        int old_freq = freq_map[elem_insert];
+        freq_map[elem_insert]++;
+        int new_freq = freq_map[elem_insert];
+
+        if (old_freq > 0) {
+            freq_bucket[old_freq].erase(elem_insert);
+        }
+        freq_bucket[new_freq].emplace(elem_insert);
+        max_freq = max(max_freq, new_freq);
+
+        int elem_remove = elements[i-wnd_sz];
+        freq_bucket[freq_map[elem_remove]].erase(elem_remove);
+        freq_map[elem_remove]--;
+        if (freq_map[elem_remove] > 0) {
+            freq_bucket[freq_map[elem_remove]].emplace(elem_remove);
+        }
+
+        // removed element moved to the one-step lower bucket
+        if (freq_bucket[max_freq].empty())
+            max_freq--;
+
+        cout << (*freq_bucket[max_freq].begin()) << " ";
+    }
+    
     cout << endl;
 }
  
