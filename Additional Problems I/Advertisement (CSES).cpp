@@ -43,9 +43,7 @@ void solve(
             prev_shorter.pop();
         }
 
-        if (prev_shorter.empty()) {
-            prev_shorter_idx[i] = 0;
-        } else {
+        if (!prev_shorter.empty()) {
             prev_shorter_idx[i] = prev_shorter.top().second+1;
         }
 
@@ -61,9 +59,7 @@ void solve(
             next_shorter.pop();
         }
 
-        if (next_shorter.empty()) {
-            next_shorter_idx[i] = fence_wid-1;
-        } else {
+        if (!next_shorter.empty()) {
             next_shorter_idx[i] = next_shorter.top().second-1;
         }
         
