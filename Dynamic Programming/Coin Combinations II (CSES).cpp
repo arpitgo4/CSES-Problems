@@ -7,71 +7,90 @@ using namespace std;
  
 // Time: O(N * K)
 // Space: O(N * K)
-  
+
+/**
+ * Infinite Knapsack DP
+ * 
+ * Inifinite supply of coins but we have to 
+ * count ordered ways in which we can create
+ * desired knapsack.
+ * 
+ * Ordered knapsacks can be created by exhausting
+ * the usage of particular coin and not re-using it for 
+ * the specific knapsack later on.
+ */
+
 const int MOD = 1e9 + 7;
-vector<vector<int>> dp;
 
-void print_vector(vector<vector<int>>& A) {
-    for (auto& v : A) {
-        for (int a : v)
-            cout << a << " ";
-        cout << endl;
-    }
-}
-
-// wrong result on some test cases...!!!
-void solve_iter(vector<int>& coins, int N, int K) {
-    dp.assign(N, vector<int>(K+1, 0));
-    for (int j = 1; j <= K; j++)
-        dp[0][j] = (j % coins[0] == 0 ? 1 : 0);
-    for (int i = 0; i < N; i++)
-        dp[i][0] = 1;
-    
-    for (int i = 1; i < N; i++)
-        for (int j = 2; j <= K; j++) {
-            dp[i][j] += dp[i-1][j];                                     // not using current coin, re-using result for the subproblem without current coin available.
-            if (j-coins[i] >= 0)
-                dp[i][j] = (dp[i][j] + dp[i][j-coins[i]]) % MOD;        // using current coin and re-using result for the subproblem where coins available is same but amount is lesser
-        }
-
-    cout << dp[N-1][K];
-}
-
-// recursive impl. gives stack-overflow for big value of K and small values of coins
-int dfs(int i, int K, vector<int>& coins, int N) {
-    if (K == 0)
-        return 1;    
-    if (K < 0)
+int countCombinations(
+    int curr_sum,
+    int curr_coin_idx,
+    vector<int>& coins,
+    int coin_cnt,
+    vector<vector<int>>& dp
+) {
+    if (curr_sum < 0 || curr_coin_idx == coin_cnt)
         return 0;
-    if (dp[i][K] != -1)
-        return dp[i][K];
+    if (curr_sum == 0)
+        return 1;
+    if (dp[curr_sum][curr_coin_idx] != -1)
+        return dp[curr_sum][curr_coin_idx];
 
-    int count = 0;
-    for (int idx = i; idx < N; idx++)
-        count = (count + dfs(idx, K-coins[idx], coins, N)) % MOD;
+    int include_coin_cnt = countCombinations(
+        curr_sum - coins[curr_coin_idx],
+        curr_coin_idx,
+        coins,
+        coin_cnt,
+        dp
+    );
 
-    return dp[i][K] = count;
+    int exclude_coin_cnt = countCombinations(
+        curr_sum,
+        curr_coin_idx+1,
+        coins,
+        coin_cnt,
+        dp
+    );
+    
+    return dp[curr_sum][curr_coin_idx] = (
+        (include_coin_cnt + exclude_coin_cnt) % MOD
+    );
 }
 
-void solve(vector<int>& coins, int N, int K) {
-    dp.assign(N, vector<int>(K+1, -1));
+void solve(
+    int target_sum,
+    vector<int>& coins,
+    int coin_cnt
+) {
+    vector<vector<int>> dp(target_sum+1, vector<int>(coin_cnt+1, -1));
+    int combination_cnt = countCombinations(
+        target_sum,
+        0,
+        coins,
+        coin_cnt,
+        dp
+    );
 
-    int count = dfs(0, K, coins, N);
-    cout << count;
+    cout << combination_cnt << endl;
 }
  
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int N, K;
-    cin >> N >> K;
+    int coin_cnt, target_sum;
+    cin >> coin_cnt >> target_sum;
 
-    vector<int> coins(N);
-    for (int i = 0; i < N; i++)
+    vector<int> coins(coin_cnt);
+    for (int i = 0; i < coin_cnt; i++) {
         cin >> coins[i];
+    }
 
-    solve_iter(coins, N, K);
+    solve(
+        target_sum,
+        coins,
+        coin_cnt
+    );   
     
     return 0;
 }
