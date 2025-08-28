@@ -1,35 +1,51 @@
 // Dice Combinations (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-
+ 
 using namespace std;
-
+ 
 // Time: O(N)
 // Space: O(N)
-
-const int MAX_NUM = 1e6 + 1; 
+ 
 const int MOD = 1e9 + 7;
-vector<int> dp(MAX_NUM, 0);
 
-void solve(int N) {
-    dp[0] = dp[1] = 1;
+int countCombinations(
+    int curr_sum,
+    vector<int>& dp
+) {
+    if (curr_sum < 0)
+        return 0;
+    if (curr_sum == 0)
+        return 1;
+    if (dp[curr_sum] != -1)
+        return dp[curr_sum];
 
-    for (int i = 2; i <= N; i++)
-        for (int j = 1; j <= 6 && i >= j; j++)
-            dp[i] = (dp[i] + dp[i-j]) % MOD;
-
-    cout << dp[N] << endl;
+    int ways_cnt = 0;
+    for (int dice_face = 1; dice_face <= 6; dice_face++) {
+        int count = countCombinations(curr_sum-dice_face, dp);
+        ways_cnt = (ways_cnt + count) % MOD;
+    }
+    
+    return dp[curr_sum] = ways_cnt;
 }
 
+void solve(
+    int target_sum
+) {
+    vector<int> dp(target_sum+1, -1);
+    int combination_cnt = countCombinations(target_sum, dp);
+    cout << combination_cnt << endl;
+}
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int target_sum;
+    cin >> target_sum;
 
-    int N;
-    cin >> N;
-
-    solve(N);
-
+    solve(target_sum);
+    
     return 0;
 }
