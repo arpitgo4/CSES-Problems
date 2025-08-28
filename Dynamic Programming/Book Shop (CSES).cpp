@@ -1,79 +1,105 @@
 // Book Shop (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-#include <climits>
-
+ 
 using namespace std;
+ 
+// Time: O(N * K)
+// Space: O(N * K)
+ 
+/**
+ * Knapsack DP
+ */
 
-// Time: O(N * MAX_PRICE)
-// Space: O(N * MAX_PRICE)
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void solve_iteratively(vector<int>& prices, vector<int>& pages, int N, int max_price) {
-    vector<vector<int>> dp(N, vector<int>(max_price+1, 0));
-
-    for (int curr_max_price = 0; curr_max_price < max_price+1; curr_max_price++)
-        if (prices[0] <= curr_max_price)
-            dp[0][curr_max_price] = pages[0];
-
-    for (int i = 1; i < N; i++) {
-        for (int curr_max_price = 0; curr_max_price < max_price+1; curr_max_price++) {
-            int a = 0;
-            if (curr_max_price >= prices[i] && curr_max_price - prices[i] >= 0)
-                a = pages[i] + dp[i-1][curr_max_price - prices[i]];
-            int b = dp[i-1][curr_max_price];
-            dp[i][curr_max_price] = max(a, b);
-        }
+class Book {
+public:
+    int price_;
+    int page_cnt_;
+    Book(int price) {
+        price_ = price;
     }
+};
 
-    cout << dp[N-1][max_price];
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-vector<vector<int>> cache;
-
-int dfs(int i, int curr_price, vector<int>& prices, vector<int>& pages, int N, int max_price) {
-    if (i == N)
+int findMaxPagesBookSubset(
+    int curr_book_idx,
+    int money_left,
+    vector<Book>& books,
+    int book_cnt,
+    vector<vector<int>>& dp
+) {
+    if (curr_book_idx == book_cnt || money_left == 0)
         return 0;
-    if (cache[i][curr_price] != -1)
-        return cache[i][curr_price];
-
-    int a_pages = INT_MIN;
-    if (curr_price + prices[i] <= max_price)
-        a_pages = pages[i] + dfs(i+1, curr_price + prices[i], prices, pages, N, max_price);
+    if (dp[curr_book_idx][money_left] != -1)
+        return dp[curr_book_idx][money_left];
     
-    int b_pages = dfs(i+1, curr_price, prices, pages, N, max_price);
+    auto& [ price, page_cnt ] = books[curr_book_idx];
+    int include_book__page_cnt = 0;
+    if (money_left >= price) {
+        include_book__page_cnt = page_cnt + findMaxPagesBookSubset(
+            curr_book_idx+1,
+            money_left-price,
+            books,
+            book_cnt,
+            dp
+        );
+    }
+    
+    int exclude_book__page_cnt = findMaxPagesBookSubset(
+        curr_book_idx+1,
+        money_left,
+        books,
+        book_cnt,
+        dp
+    );
 
-    return cache[i][curr_price] = max(a_pages, b_pages);
+    return dp[curr_book_idx][money_left] = max(
+        include_book__page_cnt,
+        exclude_book__page_cnt
+    );
 }
 
-void solve_recursively(vector<int>& prices, vector<int>& pages, int N, int max_price) {
-    cache.assign(N, vector<int>(max_price + 1, -1));
-    int max_pages = dfs(0, 0, prices, pages, N, max_price);
-    cout << max_pages;
+void solve(
+    vector<Book>& books,
+    int book_cnt,
+    int max_total_price
+) {
+    vector<vector<int>> dp(book_cnt, vector<int>(max_total_price+1, -1));
+    int max_page_cnt = findMaxPagesBookSubset(
+        0,
+        max_total_price,
+        books,
+        book_cnt,
+        dp
+    );
+
+    cout << max_page_cnt << endl;
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int book_cnt, max_total_price;
+    cin >> book_cnt >> max_total_price;
+    
+    int price;
+    vector<Book> books;
+    for (int i = 0; i < book_cnt; i++) {
+        cin >> price;
+        books.emplace_back(price); 
+    }
 
-    int N, max_price;
-    cin >> N >> max_price;
+    int page_cnt;
+    for (int i = 0; i < book_cnt; i++) {
+        cin >> books[i].page_cnt_;
+    }
 
-    vector<int> prices(N);
-    for (int i = 0; i < N; i++)
-        cin >> prices[i];
-
-    vector<int> pages(N);
-    for (int i = 0; i < N; i++)
-        cin >> pages[i];
-
-    solve_iteratively(prices, pages, N, max_price);
-
+    solve(
+        books,
+        book_cnt,
+        max_total_price
+    );
+    
     return 0;
 }
