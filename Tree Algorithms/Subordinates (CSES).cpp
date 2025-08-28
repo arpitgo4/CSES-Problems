@@ -1,58 +1,79 @@
 // Subordinates (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-
+#include <numeric>
+ 
 using namespace std;
-using ll = long long;
-
+ 
 // Time: O(N)
 // Space: O(N)
+ 
+using tree_t = vector<vector<int>>;
 
-vector<vector<int>> T;
-vector<ll> S;
-vector<int> VIS;
+void countSubordinates(
+    int curr_employee,
+    int prev_employee,
+    tree_t& company_struct,
+    int employee_cnt,
+    vector<int>& subordinate_cnt
+) {
+    for (int next_employee : company_struct[curr_employee]) {
+        if (next_employee != prev_employee) {
+            countSubordinates(
+                next_employee,
+                curr_employee,
+                company_struct,
+                employee_cnt,
+                subordinate_cnt
+            );
 
-int dfs(int u) {
-    VIS[u] = 1;
-
-    for (int v : T[u])
-        if (VIS[v] == 0)
-            S[u] += 1 + dfs(v);
-
-    return S[u];
+            subordinate_cnt[curr_employee] += subordinate_cnt[next_employee] + 1;
+        }
+    }
 }
 
-void solve(vector<int>& A, int N) {
-    T.assign(N+1, vector<int>());
-    S.assign(N+1, 0);
-    VIS.assign(N+1, 0);
-
-    for (int u = 2; u <= N; u++) {
-        int v = A[u];
-        T[u].push_back(v);
-        T[v].push_back(u);
+void solve(
+    int employee_cnt,
+    vector<int>& boss
+) {
+    tree_t company_struct(employee_cnt+1, vector<int>());
+    for (int i = 1; i <= employee_cnt; i++) {
+        if (boss[i] != i) {
+            company_struct[i].push_back(boss[i]);
+            company_struct[boss[i]].push_back(i);
+        }
     }
 
-    dfs(1);
+    vector<int> subordinate_cnt(employee_cnt+1, 0);
+    countSubordinates(
+        1,
+        1,
+        company_struct,
+        employee_cnt,
+        subordinate_cnt
+    );
 
-    for (int i = 1; i <= N; i++)
-        cout << S[i] << " ";
+    for (int i = 1; i <= employee_cnt; i++) {
+        cout << subordinate_cnt[i] << " ";
+    }
+    cout << endl;
 }
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int employee_cnt;
+    cin >> employee_cnt;
 
-    int N;
-    cin >> N;
+    vector<int> boss(employee_cnt+1);
+    iota(boss.begin(), boss.end(), 0);
+    for (int i = 2; i <= employee_cnt; i++) {
+        cin >> boss[i];
+    }
 
-    vector<int> A(N+1);
-    A[1] = -1;
-    for (int i = 2; i <= N; i++)
-        cin >> A[i];
-
-    solve(A, N);
-
+    solve(employee_cnt, boss);
+    
     return 0;
 }
