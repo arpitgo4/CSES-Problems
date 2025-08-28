@@ -14,46 +14,68 @@ using namespace std;
  * down into coins.
 */
 
+/**
+ * Infinite Knapsack DP Problem
+ * 
+ * Infinite supply for coins and we need to fill the
+ * knapsack (subset) with coins to reach the desired sum.
+ * 
+ * Count how many ways target (how many subsets) can be formed.
+ */
+
 // Time: O(N * K)
 // Space: O(K)
- 
+
 const int MOD = 1e9 + 7;
-vector<int> dp;
 
-int dfs(int K, vector<int>& coins, int N) {
-    if (K < 0)
+int countCombinations(
+    int curr_sum,
+    vector<int>& coins,
+    vector<int>& dp
+) {
+    if (curr_sum < 0)
         return 0;
-    if (K == 0)
+    if (curr_sum == 0)
         return 1;
-    if (dp[K] != -1)
-        return dp[K];
+    if (dp[curr_sum] != -1)
+        return dp[curr_sum];
 
-    int count = 0;
-    for (int c : coins)
-        count = (count + dfs(K-c, coins, N)) % MOD;
-    
-    return dp[K] = count;
+    int ways_cnt = 0;
+    for (int coin : coins) {
+        int comb_cnt = countCombinations(curr_sum-coin, coins, dp);
+        ways_cnt = (ways_cnt + comb_cnt) % MOD;
+    }
+
+    return dp[curr_sum] = ways_cnt;
 }
 
-void solve(vector<int>& coins, int N, int K) {
-    dp.assign(K+1, -1);
-
-    int count = dfs(K, coins, N);
-    cout << count;
+void solve(
+    int target_sum,
+    vector<int>& coins,
+    int coin_cnt
+) {
+    vector<int> dp(target_sum+1, -1);
+    int combination_cnt = countCombinations(target_sum, coins, dp);
+    cout << combination_cnt << endl;
 }
  
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int N, K;
-    cin >> N >> K;
+    int coin_cnt, target_sum;
+    cin >> coin_cnt >> target_sum;
 
-    vector<int> coins(N);
-    for (int i = 0; i < N; i++)
+    vector<int> coins(coin_cnt);
+    for (int i = 0; i < coin_cnt; i++) {
         cin >> coins[i];
+    }
 
-    solve(coins, N, K);
+    solve(
+        target_sum,
+        coins,
+        coin_cnt
+    );
     
     return 0;
 }
