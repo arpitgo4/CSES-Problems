@@ -1,87 +1,82 @@
 // Minimizing Coins (CSES)
-
+ 
 #include <iostream>
 #include <vector>
 #include <climits>
-
+#include <cmath>
+ 
 using namespace std;
+ 
+// Time: O(N * K)
+// Space: O(N)
+ 
+/**
+ * Infinite Knapsack Problem
+ * 
+ * Infinite number of coins are available
+ * and you have to pick minimum number of them
+ * to create target_sum
+ */
 
-//////////////////////////////////////////////////////////////////////////////
+const int INF = INT_MAX;
 
-// Time: O(K*N) 
-// Space: O(K)
+int countMinCoinsRequired(
+    int curr_sum,
+    vector<int>& coins,
+    vector<int>& dp
+) {
+    if (curr_sum < 0)
+        return INF;
+    if (curr_sum == 0)
+        return 0;
+    if (dp[curr_sum] != -1)
+        return dp[curr_sum];
 
-vector<int> dp;
-
-void solve_iterative(vector<int>& C, int N, int K) {
-    dp.assign(K+1, INT_MAX);
-    for (int c : C)
-        if (c < K+1)
-            dp[c] = 1;
-
-    // recurrence relation, dp[K] = min(dp[K], 1 + dp[K-C[i]])
-
-    for (int k = 1; k <= K; k++) {
-        for (int c : C) {
-            if (k - c > 0 && dp[k-c] != INT_MAX)
-                dp[k] = min(dp[k], 1 + dp[k-c]);
+    int min_coin_cnt = INF;
+    for (int coin : coins) {
+        int coin_cnt = countMinCoinsRequired(
+            curr_sum-coin,
+            coins,
+            dp
+        );
+        if (coin_cnt != INF) {
+            min_coin_cnt = min(
+                min_coin_cnt,
+                coin_cnt + 1
+            );
         }
     }
 
-    int coins = dp[K] == INT_MAX ? -1 : dp[K];
-    cout << coins;
+    return dp[curr_sum] = min_coin_cnt;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////
-
-// Time: O(N*K)
-// Space: O(K)
-
-vector<int> cache;
-
-int dfs(vector<int>& C, int N, int K) {
-    if (K == 0)
-        return 0;
-    if (K < 0)
-        return INT_MAX;
-    if (cache[K] != -1)
-        return cache[K];
-
-    int min_coin = INT_MAX;
-    for (int c : C) {
-        int a = dfs(C, N, K-c);
-        if (a != INT_MAX)
-            a += 1;
-        min_coin = min(min_coin, a);
-    }
-
-    return cache[K] = min_coin;
+void solve(
+    int target_sum,
+    vector<int>& coins,
+    int coin_cnt
+) {
+    vector<int> dp(target_sum+1, -1);
+    int min_coin_cnt = countMinCoinsRequired(target_sum, coins, dp);
+    cout << (min_coin_cnt == INF ? -1 : min_coin_cnt) << endl;
 }
-
-void solve_recursive(vector<int>& C, int N, int K) {
-    cache.assign(K+1, -1);
-    int coins = dfs(C, N, K);
-    coins = (coins == INT_MAX ? -1 : coins);
-    cout << coins;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int coin_cnt, target_sum;
+    cin >> coin_cnt >> target_sum;
 
-    int N, K;
-    cin >> N >> K;
+    vector<int> coins(coin_cnt);
+    for (int i = 0; i < coin_cnt; i++) {
+        cin >> coins[i];
+    }
 
-    vector<int> C(N);
-    for (int i = 0; i < N; i++)
-        cin >> C[i];
-
-    // solve_recursive(C, N, K);
-    solve_iterative(C, N, K);
-
+    solve(
+        target_sum,
+        coins,
+        coin_cnt
+    );
+    
     return 0;
 }
