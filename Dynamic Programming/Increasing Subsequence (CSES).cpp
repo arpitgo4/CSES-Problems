@@ -10,36 +10,57 @@ using namespace std;
 // Space: O(N)
 
 /**
- * dp[l] -> it is the smallest element at which an increasing
+ * subseq[l] -> it is the smallest element at which an increasing
  *          subsequence of length `l` ends.
  */
 
-void solve(vector<int>& A, int N) {
-    vector<int> dp;
-    for (int i = 0; i < N; i++) {
-        int j = lower_bound(dp.begin(), dp.end(), A[i]) - dp.begin();
-        if (j == dp.size()) {
-            dp.push_back(A[i]);
+int findLongestIncreasingSubseq(
+    vector<int>& nums,
+    int num_cnt
+) {
+    vector<int> subseq;
+    for (int i = 0; i < num_cnt; i++) {
+        int j = lower_bound(
+            subseq.begin(),
+            subseq.end(),
+            nums[i]
+        ) - subseq.begin();
+
+        if (j == (int) subseq.size()) {
+            subseq.push_back(nums[i]);
         } else {
-            dp[j] = A[i];
+            subseq[j] = nums[i];
         }
     }
 
-    cout << dp.size() << endl;
+    return subseq.size();
+}
+
+void solve(
+    vector<int>& nums,
+    int num_cnt
+) {
+    int max_subseq_len = findLongestIncreasingSubseq(
+        nums,
+        num_cnt
+    );
+
+    cout << max_subseq_len << endl;
 }
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int N;
-    cin >> N;
+    int num_cnt;
+    cin >> num_cnt;
 
-    vector<int> A(N);
-    for (int i = 0; i < N; i++)
-        cin >> A[i];
+    vector<int> nums(num_cnt);
+    for (int i = 0; i < num_cnt; i++) {
+        cin >> nums[i];
+    }
 
-    solve(A, N);
+    solve(nums, num_cnt);
 
     return 0;
 }
