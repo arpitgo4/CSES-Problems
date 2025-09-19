@@ -38,7 +38,6 @@ int countSubsetsWithTargetSum(
         return dp[curr_num][target_sum];
     }
     
-
     // include curr_num
     int include_ways = countSubsetsWithTargetSum(
         curr_num + 1,
