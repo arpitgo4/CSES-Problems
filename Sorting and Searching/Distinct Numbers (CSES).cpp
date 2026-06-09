@@ -1,48 +1,52 @@
 // Distinct Numbers (CSES)
-
+ 
 #include <iostream>
 #include <vector>
-#include <unordered_set>
 #include <algorithm>
-
+ 
 using namespace std;
-
+ 
 // Time: O(NlogN)
 // Space: O(1)
-void solve2(vector<int>& A) {
-    sort(A.begin(), A.end());
 
-    int N = A.size(), counter = 1;
-    for (int i = 1; i < N; i++)
-        if (A[i-1] != A[i])
-            counter++;
+/**
+ * Hash-Tables offers O(N) time complexity on AVERAGE.
+ * With high number of collisions, it can degrade to O(N^2).
+ * 
+ * So, dependent on the test case, hash-table can give poor
+ * performance. But, sorting is much more stable and outshine
+ * it in real-world.
+ */
 
-    cout << counter << endl;
+void solve(
+    vector<int>& nums,
+    int num_cnt
+) {
+    sort(nums.begin(), nums.end());
+
+    int distinct_cnt = 1;
+    for (int i = 1; i < num_cnt; i++) {
+        if (nums[i-1] != nums[i]) {
+            distinct_cnt++;
+        }
+    }
+
+    cout << distinct_cnt << endl;
 }
-
-// Time: O(N)
-// Space: O(N)
-void solve1(vector<int>& A) {
-    unordered_set<int> uSet;
-    for (int a : A)
-        uSet.insert(a);
-
-    cout << uSet.size() << endl;
-}
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int num_cnt;
+    cin >> num_cnt;
+    
+    vector<int> nums(num_cnt);
+    for (int i = 0; i < num_cnt; i++) {
+        cin >> nums[i];
+    }
 
-    int N;
-    cin >> N;
-
-    vector<int> A(N);
-    for (int i = 0; i < N; i++)
-        cin >> A[i];
-
-    // solve1(A);
-    solve2(A);
-
+    solve(nums, num_cnt);
+    
     return 0;
 }
