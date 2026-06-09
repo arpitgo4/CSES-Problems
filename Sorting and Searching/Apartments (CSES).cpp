@@ -1,22 +1,17 @@
 // Apartments (CSES)
-
+ 
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <set>
-
+ 
 using namespace std;
-
+ 
 // Time: O(NlogN + MlogM)
 // Space: O(N)
-
+ 
 /**
- * Greedy approach, 
- * Allocate smallest desired apartment to each customer so that customers after that which will have bigger asks
- * can be allocated rest of the bigger ones.
- * 
- * For above approach, asks have be sorted in non-decreasing order.
- * 
+ * Greedy Approach,
  * Sorted desired array and available apartments (indirectly by multiset), 
  * so that users with smallest asks get the smallest apartments avaialble within K variation
  * 
@@ -24,42 +19,60 @@ using namespace std;
  * which could have been allocated to next customer with smaller ask than previous one but that apartment is no
  * longer available
 */
+void solve(
+    vector<int>& desired_apt_size,
+    int applicant_cnt,
+    vector<int>& apartment_size,
+    int apartment_cnt,
+    int max_diff
+) {
+    sort(desired_apt_size.begin(), desired_apt_size.end());
 
-void solve(vector<int>& apartments, vector<int>& desired, int N, int M, int K) {
-    sort(desired.begin(), desired.end());
+    multiset<int> apartment_set(
+        apartment_size.begin(),
+        apartment_size.end()
+    );
 
-    multiset<int> oms(apartments.begin(), apartments.end());
+    int alloc_cnt = 0;
+    for (int i = 0; i < (int) desired_apt_size.size(); i++) {
+        int desired_size = desired_apt_size[i];
+        multiset<int>::iterator itr = apartment_set.lower_bound(
+            desired_size - max_diff
+        );
 
-    int counter = 0;
-    for (int d : desired) {
-        auto itr = oms.lower_bound(d-K);
-        if (itr != oms.end()) {
-            if (*itr <= d+K) {
-                counter++;
-                oms.erase(itr);
-            }
+        if (itr != apartment_set.end() && *itr <= (desired_size + max_diff)) {
+            apartment_set.erase(itr);
+            alloc_cnt++;
         }
     }
 
-    cout << counter;
+    cout << alloc_cnt << endl;
 }
-
+ 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
+    int applicant_cnt, apartment_cnt, max_diff;
+    cin >> applicant_cnt >> apartment_cnt >> max_diff;
+    
+    vector<int> desired_apt_size(applicant_cnt);
+    for (int i = 0; i < applicant_cnt; i++) {
+        cin >> desired_apt_size[i];
+    }
 
-    int N, M, K;
-    cin >> N >> M >> K;
+    vector<int> apartment_size(apartment_cnt);
+    for (int i = 0; i < apartment_cnt; i++) {
+        cin >> apartment_size[i];
+    }
 
-    vector<int> desired(N);
-    for (int i = 0; i < N; i++)
-        cin >> desired[i];
-
-    vector<int> apartments(M);
-    for (int i = 0; i < M; i++)
-        cin >> apartments[i];
-
-    solve(apartments, desired, N, M, K);
-
+    solve(
+        desired_apt_size,
+        applicant_cnt,
+        apartment_size,
+        apartment_cnt,
+        max_diff
+    );
+    
     return 0;
-} 
+}
